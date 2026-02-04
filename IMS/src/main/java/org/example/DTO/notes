@@ -1,0 +1,42 @@
+Example Flow
+
+Let’s say you purchase 10 boxes of soap.
+
+Insert into purchases:
+
+purchase_id = 101, supplier_id = 12
+
+Insert into purchase_items:
+
+purchase_item_id = 2001, purchase_id = 101, product_id = 5, quantity = 10
+
+Insert into stock_movements:
+
+movement_id = 5001, product_id = 5, movement_type = 'purchase', reference_id = 101, quantity = +10
+
+Stock updated:
+
+If product 5 had 20 in stock, now it’s 30.
+
+stock +- purchaseQuantity
+
+
+
+DASHBOARD
+
+DAILY METRICS
+
+- total sales
+- total purchases
+- total products
+- total customers
+- total suppliers
+- profit
+
+SALES AND PURCHASE 7 DAY TREND CHART
+
+TOP 5 SELLING PRODUCTS
+
+LOW STOCK ALERTS TOP 5
+
+RECENT TRANSACTIONS
