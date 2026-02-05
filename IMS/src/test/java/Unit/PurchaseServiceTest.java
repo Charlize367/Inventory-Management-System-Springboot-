@@ -2,6 +2,7 @@ package Unit;
 
 import org.example.DTO.Request.PurchaseItemRequest;
 import org.example.DTO.Request.PurchaseRequest;
+import org.example.DTO.Request.VariationOptionRequest;
 import org.example.DTO.Response.ProductResponse;
 import org.example.DTO.Response.PurchaseItemResponse;
 import org.example.DTO.Response.PurchaseResponse;
@@ -19,8 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cglib.core.Local;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @ExtendWith(MockitoExtension.class)
 public class PurchaseServiceTest {
@@ -91,13 +91,16 @@ public class PurchaseServiceTest {
         testStaff.setUsername("John Doe");
         testStaff.setRole(Users.Role.STAFF);
 
-        Categories testCategory = new Categories();
-        Products product1 = new Products(1L, "Test Product 1", "Test Description 1", 10.0, 10.0, 50, "test-image.jpg", testCategory, true);
-        Products product2 = new Products(2L, "Test Product 2", "Test Description 2", 12.0, 12.0, 50, "test-image2.jpg", testCategory, true);
+        Set<Categories> testCategory = new HashSet<>();
+        Set<Variation> testVariation = new HashSet<>();
+        Brand testBrand = new Brand();
+        List<VariationOptionRequest> testOptions = new ArrayList<>();
+        Products product1 = new Products(1L, "Test Product 1", "Test Description 1", 10.0, 10.0, 50, "test-image.jpg", testCategory, testVariation, true, "CODE", testSupplier, testBrand);
+        Products product2 = new Products(2L, "Test Product 2", "Test Description 2", 12.0, 12.0, 50, "test-image2.jpg", testCategory, testVariation, true, "CODE-2", testSupplier, testBrand);
 
         List<PurchaseItemRequest> purchaseItemRequests = List.of(
-                new PurchaseItemRequest(1L, 10),
-                new PurchaseItemRequest(2L, 5)
+                new PurchaseItemRequest(1L, 10, testOptions),
+                new PurchaseItemRequest(2L, 5, testOptions)
         );
 
         PurchaseRequest request = new PurchaseRequest(

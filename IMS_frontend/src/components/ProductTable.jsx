@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 const ProductTable = ({ columns, headers, data,  onAddClick, onEditClick, onDeleteClick, currentPage, totalPages, fetchData }) => {
     const API_URL = import.meta.env.VITE_API_URL;
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+    const bucket = import.meta.env.VITE_S3_BUCKET;
+    const region = import.meta.env.VITE_AWS_REGION;
     const role = localStorage.getItem('role');
     const [loading, setLoading] = useState(true);
 
@@ -78,7 +80,7 @@ console.log(data);
         <td className="px-6 py-4 max-w-2xl break-words" key={column.accessor}>
   {isImage ? (
     <img
-      src={`${API_BASE_URL}/images/${value}`}
+      src={`https://${bucket}.s3.${region}.amazonaws.com/${value}`}
       alt={row.name || "Image"}
       className="w-16 md:w-32 max-w-full max-h-full"
     />
