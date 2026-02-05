@@ -53,4 +53,4 @@ networks:
     driver: bridge
 
 volumes:
-  db:
+  pgdata:
