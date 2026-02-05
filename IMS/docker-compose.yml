@@ -14,7 +14,7 @@ services:
     ports:
       - "5352:5432"
     networks:
-      - db
+      - backend
     restart: unless-stopped
 
 
@@ -49,7 +49,7 @@ services:
     restart: unless-stopped
 
 networks:
-  db:
+  backend:
     driver: bridge
 
 volumes:
