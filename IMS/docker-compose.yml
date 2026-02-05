@@ -10,7 +10,7 @@ services:
       POSTGRES_USER: liz
       POSTGRES_PASSWORD: password
     volumes:
-      - db:/var/lib/postgresql
+      - pgdata:/var/lib/postgresql
     ports:
       - "5352:5432"
     networks:
