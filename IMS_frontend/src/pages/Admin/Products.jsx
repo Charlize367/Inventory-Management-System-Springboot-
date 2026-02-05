@@ -157,7 +157,8 @@ const Products = () => {
           productStock: 0,
           staffId: userId,
           brandId: 0,
-          supplierId: 0
+          supplierId: 0,
+          productImage: null
 
       });
   
@@ -359,8 +360,44 @@ console.log(products);
                 }
               }, [retryTime, showPopup]);
 
-              console.log(formData);
-              console.log(productImage);
+         
+
+    const uploadImage = async() => {
+
+      let productPayload = { ...formData };
+      try{
+
+        const imageData = {
+                filename: productImage.name,
+                contentType: productImage.type,
+                fileSize: productImage.size
+
+        }
+
+        const { data } = await axios.post(`${API_URL}/images/initiate`, imageData,  {
+                            headers: {
+                                'Authorization' : `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                });
+
+
+                const { uploadUrl, key } = data;
+
+              await axios.put(uploadUrl, productImage, {
+                headers: {
+                  'Content-Type': productImage.type,
+                },
+              });
+
+              productPayload = {
+              ...formData,
+              productImage: key, 
+            };
+      } catch(error) {
+        console.log(error);
+      }
+    }
 
 
     const handleSubmit = async (e) => {
@@ -372,10 +409,19 @@ console.log(products);
     return;
     }
 
-    let productId = 0;
+    if (!productImage) {
+        return alert("Please select an image");
+    }
+
+    
        try {
 
         if (isEditing) {
+
+          if(productImage) {
+            uploadImage();
+              
+          }
 
             const response = await axios.put(`${API_URL}/products/${formData.productId}`, formData, {
               headers: {
@@ -384,31 +430,7 @@ console.log(products);
               },
             });
 
-            console.log(response.data);
-
-            productId = response.data.productId;
-
-          
-            
-
-            if (productImage instanceof File) {
-            
-              
-            
-            const fd = new FormData();
-            fd.append("productImage", productImage);
-            
-
-            await axios.post(`${API_URL}/products/image/${productId}`, fd, {
-              headers: {
-                "Content-Type": "multipart/form-data",
-                Authorization: `Bearer ${token}`,
-              },
-            });
-
-
-            }
-
+            console.log(response);
             getProducts();
             handlePopup("Product details edited successfully.");
             closeAndClearForm();
@@ -416,6 +438,8 @@ console.log(products);
             
 
         } else {
+
+        uploadImage();
 
           const response = await axios.post(`${API_URL}/products`, formData, {
               headers: {
@@ -426,30 +450,11 @@ console.log(products);
 
             
 
-            console.log(response.data);
-             productId = response.data.productId;
-
-            
-
-            if (productImage) {
-             
-            
-            const fd = new FormData();
-            fd.append("productImage", productImage);
-            
-
-             await axios.post(`${API_URL}/products/image/${productId}`, fd, {
-              headers: {
-                "Content-Type": "multipart/form-data",
-                Authorization: `Bearer ${token}`,
-              },
-            });
-           
-            }
-
+        
+            console.log(response);
              getProducts();
-              handlePopup("Product added successfully.");
-              closeAndClearForm();
+            handlePopup("Product added successfully.");
+            closeAndClearForm();
 
         }
             } catch (error) {
@@ -457,6 +462,9 @@ console.log(products);
               
             }
     }
+
+
+    
 
     const closeAndClearForm = () => {
         closeModal();
