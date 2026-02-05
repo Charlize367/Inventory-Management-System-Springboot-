@@ -6,7 +6,7 @@ services:
     container_name: postgres-spring-boot-IMS
     image: postgres:latest
     environment:
-      POSTGRES_DB: ims
+      POSTGRES_DB: inventory
       POSTGRES_USER: liz
       POSTGRES_PASSWORD: password
     volumes:
