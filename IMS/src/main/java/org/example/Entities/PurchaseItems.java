@@ -36,7 +36,7 @@ public class PurchaseItems {
     @DecimalMax(value = "1000000.00", message = "Price must not exceed 1,000,000")
     private Double purchaseCostPrice;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "purchase_item_variation_options",
             joinColumns = @JoinColumn(name = "variationOptionId"),

@@ -16,7 +16,8 @@ const Products = () => {
   const [showModal2, setShowModal2] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const API_URL = import.meta.env.VITE_API_URL;
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const bucket = import.meta.env.VITE_S3_BUCKET;
+  const region = import.meta.env.VITE_AWS_REGION;
   const [products, setProducts] = useState([]);
   const token = localStorage.getItem('jwtToken');
   const [deleteId, setDeleteId] = useState(0);
@@ -45,6 +46,7 @@ const Products = () => {
   const brandRef = useRef(null);
   const [categoryId, setCategoryId] = useState(0);
   const [brandId, setBrandId] = useState(0);
+  
 
 
   useEffect(() => {
@@ -180,7 +182,8 @@ const Products = () => {
             productStock: product.productStock,
             staffId: userId,
             brandId:product.brand.brandId,
-            supplierId:product.supplier.supplierId
+            supplierId:product.supplier.supplierId,
+            productImage: product.productImage
           });
 
           setProductImage(product.productImage);
@@ -364,10 +367,10 @@ console.log(products);
 
     const uploadImage = async() => {
 
-      let productPayload = { ...formData };
+      
       try{
 
-        const imageData = {
+         const imageData = {
                 filename: productImage.name,
                 contentType: productImage.type,
                 fileSize: productImage.size
@@ -390,10 +393,9 @@ console.log(products);
                 },
               });
 
-              productPayload = {
-              ...formData,
-              productImage: key, 
-            };
+              return key;
+
+             
       } catch(error) {
         console.log(error);
       }
@@ -403,6 +405,9 @@ console.log(products);
     const handleSubmit = async (e) => {
 
     e.preventDefault();
+    let productPayload = {...formData};
+
+    
     
     if (formData.productDescription > 100) {
     alert("Description must not exceed 100 characters.");
@@ -416,14 +421,15 @@ console.log(products);
     
        try {
 
+       
         if (isEditing) {
 
           if(productImage) {
-            uploadImage();
-              
+            const imageKey = await uploadImage();
+            productPayload = { ...formData, productImage: imageKey };
           }
 
-            const response = await axios.put(`${API_URL}/products/${formData.productId}`, formData, {
+            const response = await axios.put(`${API_URL}/products/${formData.productId}`, productPayload, {
               headers: {
                  "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
@@ -438,10 +444,14 @@ console.log(products);
             
 
         } else {
+        
 
-        uploadImage();
+        const imageKey = await uploadImage();
 
-          const response = await axios.post(`${API_URL}/products`, formData, {
+       productPayload = { ...formData, productImage: imageKey };
+
+        console.log(imageKey);
+          const response = await axios.post(`${API_URL}/products`, productPayload, {
               headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
@@ -539,7 +549,7 @@ console.log(products);
           <h1 className="text-2xl block rounded-lg bg-white px-4 py-2 font-medium text-gray-700">{category}</h1>
           <button
             onClick={() => setShowSidebar(!showSidebar)}
-            className="text-gray-700 hover:text-gray-900"
+            className="text-gray-700 cursor-pointer hover:text-gray-900"
           >
             {showSidebar ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -567,12 +577,14 @@ console.log(products);
 
       
         <div className="grid grid-cols-1 gap-4 m-0  bg-gray-200 p-4 flex-grow">
+          
           <div className="flex gap-2">
 
+      
       <div className="relative" ref={categoryRef}>
         <button
           onClick={() => setCategoryOpen(!categoryOpen)}
-          className="inline-flex items-center justify-center text-sm px-3 py-2 rounded bg-gray-200 hover:bg-gray-300"
+          className="inline-flex items-center cursor-pointer justify-center text-sm px-3 py-2 rounded bg-gray-200 hover:bg-gray-300"
         >
           Sort By Category
           <svg
@@ -602,7 +614,7 @@ console.log(products);
                         setCategoryId(c.categoryId);
                       }
                     }}
-                    className={`w-full text-left p-2 hover:bg-gray-100 rounded
+                    className={`w-full text-left p-2 cursor-pointer hover:bg-gray-100 rounded
                       ${selected ? "bg-gray-200" : ""}`}
                   >
                     {c.categoryName}
@@ -614,12 +626,12 @@ console.log(products);
         </div>
       )}
       </div>
-
+      
       
       <div className="relative" ref={brandRef}>
         <button
           onClick={() => setBrandOpen(!brandOpen)}
-          className="inline-flex items-center justify-center text-sm px-3 py-2 rounded bg-gray-200 hover:bg-gray-300"
+          className="inline-flex items-center justify-center cursor-pointer text-sm px-3 py-2 rounded bg-gray-200 hover:bg-gray-300"
         >
           Sort By Brand
           <svg
@@ -649,7 +661,7 @@ console.log(products);
                         setBrandId(b.brandId);
                       }
                     }}
-                    className={`w-full text-left p-2 hover:bg-gray-100 rounded
+                    className={`w-full text-left p-2 cursor-pointer hover:bg-gray-100 rounded
                       ${selected ? "bg-gray-200" : ""}`}
                   >
                     {b.brandName}
@@ -662,6 +674,7 @@ console.log(products);
       )}
       </div>
     </div>
+  
 
 
           <ProductTable columns={columns} headers={headers} onAddClick={openModal} onEditClick={handleEdit} data={products} onDeleteClick={handleDelete} currentPage={currentPage} totalPages={totalPages} fetchData={getProducts} />
@@ -674,7 +687,7 @@ console.log(products);
                     <button
                     onClick={() => { setShowPopup(false); getProducts(currentPage); }}
                     disabled={retryTime > 0}
-                    className={`text-white inline-flex items-center bg-gray-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mt-4 text-center ${
+                    className={`text-white inline-flex items-center cursor-pointer bg-gray-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mt-4 text-center ${
                         retryTime > 0 ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                     >
@@ -693,7 +706,7 @@ console.log(products);
                         <h3 className="text-lg font-semibold text-gray-900">
                             {isEditing ? "Edit Product" : "Add New Product"}
                         </h3>
-                        <button type="button" onClick={closeAndClearForm} className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-toggle="crud-modal">
+                        <button type="button" onClick={closeAndClearForm} className="text-gray-400 cursor-pointer bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-toggle="crud-modal">
                             <svg className="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                                 <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
                             </svg>
@@ -753,7 +766,7 @@ console.log(products);
                                       multiple
                                     >
                                     
-                                    <ListboxButton className="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg p-2.5 text-left focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <ListboxButton className="w-full bg-gray-50 border cursor-pointer border-gray-300 text-gray-900 text-sm rounded-lg p-2.5 text-left focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                                         {selectedCategories.length > 0
                                         ? selectedCategories.map(id => categories.find(c => c.categoryId === id)?.categoryName || 'Unknown').join(', ')
                                     : 'Select items'}
@@ -877,14 +890,14 @@ console.log(products);
                         </div>
                         <div className="col-span-2 flex justify-center">
                         {isEditing ? <img
-                        src={`${API_BASE_URL}/images/${productImage}`}
+                        src={`https://${bucket}.s3.${region}.amazonaws.com/${productImage}`}
                         alt=""
                         className="w-16 md:w-32 max-w-full max-h-full "
                         /> : null}
                         
                         </div>
                         <div className="col-span-2 flex justify-center">
-                        <button type="submit" className="text-white inline-flex items-center bg-gray-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mt-2 text-center">
+                        <button type="submit" className="text-white inline-flex cursor-pointer items-center bg-gray-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mt-2 text-center">
                             <svg className="me-1 -ms-1 w- h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd"></path></svg>
                             {isEditing ? "Update" : "Add"}
                         </button>

@@ -130,7 +130,7 @@ console.log(tableData);
   <div className="flex items-center justify-center">
     <button 
       onClick={onAddClick} 
-      className="flex items-center justify-center px-3 mt-5 w-9 h-9 text-xl leading-tight text-gray-500 bg-white border border-gray-300 rounded-e hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+      className="flex cursor-pointer items-center justify-center px-3 mt-5 w-9 h-9 text-xl leading-tight text-gray-500 bg-white border border-gray-300 rounded-e hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
     >
       +
     </button>
@@ -277,7 +277,7 @@ console.log(tableData);
   <div className="flex items-center justify-center">
     <button type="button"
       onClick={onAddClick} 
-      className="flex items-center justify-center px-3 mt-5 w-9 h-9 text-xl leading-tight text-gray-500 bg-white border border-gray-300 rounded-e hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+      className="flex cursor-pointer items-center justify-center px-3 mt-5 w-9 h-9 text-xl leading-tight text-gray-500 bg-white border border-gray-300 rounded-e hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
     >
       +
     </button>
@@ -291,20 +291,20 @@ console.log(tableData);
         <ul className="inline-flex -space-x-px rtl:space-x-reverse text-sm h-8">
             
             <li>
-                <button className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white" onClick={() => fetchData(currentPage - 1)}>Previous</button>
+                <button className="flex cursor-pointer items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white" onClick={() => fetchData(currentPage - 1)}>Previous</button>
             </li>
 
             
                 {Array.from({ length: totalPages}, (_, i) => (
                     <li>
-                    <button key={i}  className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white" onClick={() => fetchData(i)}>{i + 1}</button>
+                    <button key={i}  className="flex cursor-pointer items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white" onClick={() => fetchData(i)}>{i + 1}</button>
                      </li>
                 ))}
                 
         
             
             <li>
-        <button className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white" disabled={currentPage === totalPages - 1} onClick={() => fetchData(currentPage + 1)}>Next</button>
+        <button className="flex items-center cursor-pointer justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white" disabled={currentPage === totalPages - 1} onClick={() => fetchData(currentPage + 1)}>Next</button>
             </li>
         </ul>
     </nav> 

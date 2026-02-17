@@ -44,6 +44,7 @@ services:
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
+      FRONTEND_URL: ${FRONTEND_URL}
     networks:
       - backend
     restart: unless-stopped

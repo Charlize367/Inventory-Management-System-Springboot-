@@ -38,7 +38,7 @@ const Sidebar = () => {
     
    <div className="flex h-full flex-col justify-between border-e border-white bg-white">
   <div className="px-4 py-6">
-    <span className="grid h-10 w-40 place-content-center p-10 rounded-lg bg-gray-100 text-m text-gray-600">
+    <span className="grid h-10 w-40 place-content-center p-10 rounded-lg text-lg font-bold text-gray-600">
       Inventory Management
     </span>
 

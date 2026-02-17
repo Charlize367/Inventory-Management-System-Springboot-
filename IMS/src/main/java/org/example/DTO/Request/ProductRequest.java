@@ -49,13 +49,16 @@ public class ProductRequest {
     @NotNull(message = "Brand ID is required")
     private Long brandId;
 
+    @NotBlank
+    private String productImage;
+
     private List<Long> variationIds;
 
 
 
-    private MultipartFile productImage;
 
-    public ProductRequest(String productName, String productDescription, Double productPrice, Double productCost, Integer productStock, List<Long> categoryIds, String productCode, Long staffId, Long supplierId, Long brandId, List<Long> variationIds) {
+
+    public ProductRequest(String productName, String productDescription, Double productPrice, Double productCost, Integer productStock, List<Long> categoryIds, String productCode, Long staffId, Long supplierId, Long brandId, List<Long> variationIds, String productImage) {
         this.productName = productName;
         this.productDescription = productDescription;
         this.productPrice = productPrice;
@@ -67,6 +70,7 @@ public class ProductRequest {
         this.brandId = brandId;
         this.staffId = staffId;
         this.variationIds = variationIds;
+        this.productImage = productImage;
     }
 
     public String getProductName() {
@@ -163,6 +167,14 @@ public class ProductRequest {
 
     public void setVariationIds(List<Long> variationIds) {
         this.variationIds = variationIds;
+    }
+
+    public String getProductImage() {
+        return productImage;
+    }
+
+    public void setProductImage(String productImage) {
+        this.productImage = productImage;
     }
 
 

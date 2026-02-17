@@ -28,6 +28,7 @@ const Sales = () => {
   const [deleteSuccess, setDeleteSuccess] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [variations, setVariations] = useState([]);
+  const [ skus, setSkus] = useState([]);
 
 
   const openModal = () => setShowModal(true);
@@ -102,16 +103,85 @@ const Sales = () => {
           setFormData({ ...formData, [name]: name === "customerId" ? Number(value) : value,
               });
       }
-      const handleOptionChange = (productId, variation, option) => {
+
+      const getSku = async () => {
+       try {
+             const response = await axios.get(`${API_URL}/sku/all`, {
+                  headers: {
+                       'Content-Type': 'application/json',
+                       'Authorization': `Bearer ${token}`
+                  }
+              });
+
+              setSkus(response.data);
+            
+            
+              
+              
+            } catch (error) {
+              console.log(error);
+              if (error.response?.data === "Too many requests" || error.response?.status === 429) {
+                const retryAfter = parseInt(error.response.headers["retry-after"], 10) || 5;
+                setRetryTime(retryAfter);
+                setError("Too Many Requests");
+                setShowPopup(true);
+                }
+            }
+          }
+  
+      useEffect(() => {
+      getSku();
+      
+    }, []);
+    
+
+
+      const disableOption = (itemId, variationOption, variationId, product) => {
+        const newOption = {
+  ...variationOption,  
+  variationId: variationId,  
+};
+
+        const item = selectedItems[itemId];
+        const currentSelections = item?.variationOptions || [];
+        if (currentSelections.length === 0) {
+            const hasStockForOption = skus.some(sku => 
+                sku.product.productId === product.productId &&
+                sku.stockQuantity > 0 &&
+                sku.variationOptions.some((skuOpt) =>
+                    skuOpt.variationOptionId === variationOption.variationOptionId
+            ));
+
+            return !hasStockForOption;
+        } 
+        const hypotheticalCombo = [...currentSelections.filter(opt => !opt.variationId || opt.variationId !== variationId), newOption];
+        
+       
+        const matchingSkuCombo = skus.find(sku => 
+            sku.product.productId === product.productId &&
+            sku.variationOptions.length === hypotheticalCombo.length &&
+            sku.variationOptions.every((skuOpt, index) => 
+        skuOpt.variationOptionId === hypotheticalCombo[index].variationOptionId && skuOpt.variationId === hypotheticalCombo[index].variationId 
+    )
+        );
+        console.log(matchingSkuCombo)
+        
+        if (matchingSkuCombo?.stockQuantity === 0) return true;
+
+        
+        return false;
+    }
+
+     const handleOptionChange = (itemId, variation, option) => {
        if (!option) return;
-  setSelectedItems(prevItems =>
-    prevItems.map(item => {
-      if (item.productId !== productId) return item;
+  setSelectedItems(prevItems => {
+    
+  
 
-      
-      const updatedOptions = [...item.variationOptions];
+     const updatedItems = [...prevItems];
+     const item = { ...updatedItems[itemId] };
+    const updatedOptions = [...item.variationOptions];
 
-      
       const index = updatedOptions.findIndex(vo => vo.variationId === variation.variationId);
 
       if (index > -1) {
@@ -124,7 +194,6 @@ const Sales = () => {
           variationPriceAdjustment: option.variationPriceAdjustment
         };
       } else {
-       
         updatedOptions.push({
           variationId: variation.variationId,
           variationOptionId: option.variationOptionId,
@@ -133,10 +202,54 @@ const Sales = () => {
           variationPriceAdjustment: option.variationPriceAdjustment
         });
       }
+      
 
-      return { ...item, variationOptions: updatedOptions };
+    const updatedItem = { ...item, variationOptions: updatedOptions };
+    updatedItems[itemId] = updatedItem;
+
+    const product = products.find(
+  p => p.productId === updatedItem.productId
+);
+
+const totalVariations = product?.variations?.length || 0;
+
+console.log("Optioins", updatedOptions);
+console.log("options to be passed: ", option);
+
+
+      const existingIndex = updatedItems.findIndex(
+        (i, idx) =>  {
+        if(idx == itemId) return false;
+        if (i.productId !== updatedItem.productId) return false;
+
+        if (
+    i.variationOptions.length !== totalVariations ||
+    updatedItem.variationOptions.length !== totalVariations
+  ) {
+    return false;
+  }
+
+        return JSON.stringify(i.variationOptions) === JSON.stringify(updatedItem.variationOptions)
+        });
+
+      
+
+      if (existingIndex >= 0) {
+        
+        const mergedQuantity = updatedItem.purchaseItemQuantity + updatedItems[existingIndex].purchaseItemQuantity;
+
+   
+    updatedItems[existingIndex] = {
+      ...updatedItems[existingIndex],
+      purchaseItemQuantity: mergedQuantity
+    };
+        updatedItems.splice(itemId, 1);
+        
+        
+      }
+
+      return updatedItems;
     })
-  );
 };
       
            const getVariations = async() => {
@@ -374,7 +487,7 @@ const removeSelectedItems = (index) => {
           <h1 className="text-2xl block rounded-lg bg-white px-4 py-2 font-medium text-gray-700">Sales</h1>
           <button
             onClick={() => setShowSidebar(!showSidebar)}
-            className="text-gray-700 hover:text-gray-900"
+            className="text-gray-700 cursor-pointer hover:text-gray-900"
           >
             {showSidebar ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -414,7 +527,7 @@ const removeSelectedItems = (index) => {
                                 <h3 className="text-lg font-semibold text-gray-900">
                                     Add New Sale
                                 </h3>
-                                <button type="button" onClick={closeAndClearForm} className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-toggle="crud-modal">
+                                <button type="button" onClick={closeAndClearForm} className="text-gray-400 cursor-pointer bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-toggle="crud-modal">
                                     <svg className="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                                         <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
                                     </svg>
@@ -440,7 +553,7 @@ const removeSelectedItems = (index) => {
                                         <button
                             type="button"
                             onClick={addSelectedItems}
-                            className="text-white inline-flex items-center bg-gray-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mt-4 text-center"
+                            className="text-white inline-flex items-center bg-gray-700 cursor-pointer hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mt-4 text-center"
                         >
                             Add Product +
                         </button>
@@ -471,7 +584,9 @@ const removeSelectedItems = (index) => {
           
         <tbody>
            {selectedItems.map((row, rowIndex) =>  {
+            console.log(selectedItems);
             const product = products.find((p) => p.productId === row.productId);
+           
             return(
           <tr className="bg-white border-b border-gray-200 text-gray-500 hover:bg-gray-700 hover:text-white">
             
@@ -494,53 +609,67 @@ const removeSelectedItems = (index) => {
   }} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 " required>
                                     <option value="" className="text-gray-50">Select product</option>
                                     {products.map(p => (
-                                        <option key={p.productId} value={p.productId}>{p.productName}</option>
+                                        <option key={p.productId} disabled={p.productStock == 0} value={p.productId}>{p.productName}</option>
                                     ))}
                                 </select> </td>
                     <td className="px-6 py-4">{product?.productPrice || 0}</td>
                     <td className="px-6 py-4"><form>
                 
                 <label htmlFor="Line1Qty" className="sr-only"> Quantity </label>
-                <button type="button" onClick={(e) => {
+                <button type="button" disabled={!product} onClick={(e) => {
     e.stopPropagation();
     setSelectedItems(prev => {
       const updated = [...prev];
+      const sku = skus.find(s => 
+  s.product.productId === product.productId &&
+  s.variationOptions.length === product.variationOptions?.length &&
+  s.variationOptions.every((value, idx) => value.variationOptionId === product.variationOptions[idx].variationOptionId)
+  );
+  const maxStock = sku?.stockQuantity ?? product.productStock;
       updated[rowIndex] = {
         ...updated[rowIndex],
-        saleItemQuantity: Math.min(updated[rowIndex].saleItemQuantity + 1, product.productStock)
+        saleItemQuantity: Math.max(
+  0,
+  Math.min(updated[rowIndex].saleItemQuantity + 1, maxStock)
+)
       };
       return updated;
     });
-  }}  className="text-white m-1 bg-black box-border border border-transparent hover:bg-dark-strong focus:ring-4 focus:warning-subtle shadow-xs font-medium leading-5 rounded-full text-sm px-3 py-2.5 focus:outline-none">+</button>
+  }}  className="text-white m-1 bg-black box-border border cursor-pointer border-transparent hover:bg-dark-strong focus:ring-4 focus:warning-subtle shadow-xs font-medium leading-5 rounded-full text-sm px-3 py-2.5 focus:outline-none">+</button>
                 <input type="number" min="1" value={row.saleItemQuantity} id="Line1Qty" className="h-8 w-10 rounded-sm border-gray-200 bg-gray-100 p-0 text-center text-sm text-gray-600 [-moz-appearance:_textfield] focus:outline-hidden [&amp;::-webkit-inner-spin-button]:m-0 [&amp;::-webkit-inner-spin-button]:appearance-none [&amp;::-webkit-outer-spin-button]:m-0 [&amp;::-webkit-outer-spin-button]:appearance-none" />
-                <button type="button" onClick={(e) => {
+                <button type="button" disabled={!product} onClick={(e) => {
     e.stopPropagation();
     setSelectedItems(prev => {
       const updated = [...prev];
       updated[rowIndex] = {
         ...updated[rowIndex],
-        saleItemQuantity: Math.min(updated[rowIndex].saleItemQuantity - 1, product.productStock)
+        saleItemQuantity: Math.max(0, updated[rowIndex].saleItemQuantity - 1)
       };
       return updated;
     });
-  }} className="text-white m-1 bg-black box-border border border-transparent hover:bg-dark-strong focus:ring-4 focus:warning-subtle shadow-xs font-medium leading-5 rounded-full text-sm px-3 py-2.5 focus:outline-none">-</button>
+  }} className="text-white m-1 bg-black box-border cursor-pointer border border-transparent hover:bg-dark-strong focus:ring-4 focus:warning-subtle shadow-xs font-medium leading-5 rounded-full text-sm px-3 py-2.5 focus:outline-none">-</button>
                            
                         </form></td>
-                    <td className="px-6 py-4">{product?.variations.map(v => (
+                    <td className="px-6 py-4">{product?.variations && product.variations.length > 0 ? (
+    product?.variations.sort((a, b) => a.variationId - b.variationId).map(v => (
                                   <div className="col-span-2 ">
                                   <label htmlFor="variation" className="block mb-2 text-sm font-medium text-gray-900">{v.variationName}</label>
                                 <select name={v.variationName} id={v.variationName} onChange={e => {
                               const optionId = Number(e.target.value);
                               const selectedOption = v.variationOptions.find(o => o.variationOptionId === optionId);
-                              handleOptionChange(row.productId, v, selectedOption);
+                              handleOptionChange(rowIndex,  v, selectedOption);
   }} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 " required>
                                     <option value="" className="text-gray-50">Select variation</option>
                                     {v.variationOptions.map(o => (
-                                        <option key={o.variationOptionId} value={o.variationOptionId}>{o.variationOptionName}</option>
+                                        <option key={o.variationOptionId}  disabled={disableOption(rowIndex, o, v.variationId, product)} value={o.variationOptionId}>{o.variationOptionName}</option>
                                     ))}
                                 </select>
                                 </div>
-                                ))}</td>
+                                 ))
+  ) : (
+    <span className="text-gray-500 italic">No variations available</span>
+  )}
+</td>
                     <td className="px-6 py-4">{(product?.productCost + row.variationOptions.reduce(
             (sum, vo) => sum + (vo.variationPriceAdjustment || 0),
             0
@@ -548,7 +677,7 @@ const removeSelectedItems = (index) => {
            <td className="px-6 py-4"> <button
                             type="button"
                             onClick={() =>removeSelectedItems(rowIndex)}
-                            className="text-white inline-flex items-center ml-5 bg-gray-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mt-4 text-center"
+                            className="text-white inline-flex items-center cursor-pointer ml-5 bg-gray-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mt-4 text-center"
                         >
                             Remove
                         </button></td>
@@ -565,7 +694,7 @@ const removeSelectedItems = (index) => {
     </table>
 }
     </div>
-                        <button type="submit" disabled={selectedItems.some(item => item.saleItemQuantity === 0)}className="text-white inline-flex items-center bg-gray-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mt-4 text-center">
+                        <button type="submit" disabled={selectedItems.some(item => item.saleItemQuantity === 0)} className="text-white  cursor-pointer inline-flex items-center bg-gray-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mt-4 text-center">
                          <svg className="me-1 -ms-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd"></path></svg>
                              Add new sale
                         </button>

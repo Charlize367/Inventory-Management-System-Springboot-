@@ -93,7 +93,8 @@ public class ProductServiceTest {
                 1L,
                 1L,
                 1L,
-                List.of(1L, 1L)
+                List.of(1L, 1L),
+                "test.jpg"
         );
 
 
@@ -165,7 +166,8 @@ public class ProductServiceTest {
                 1L,
                 1L,
                 1L,
-                List.of(1L, 1L)
+                List.of(1L, 1L),
+                "test-image.jpg"
         );
 
 

@@ -49,7 +49,7 @@ public class Products {
 
     private String productImage;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "product_variations",
             joinColumns = @JoinColumn(name = "variationId"),
             inverseJoinColumns = @JoinColumn(name = "productId"))
@@ -60,7 +60,7 @@ public class Products {
     @NotNull(message = "Brand is required")
     private Brand brand;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "product_categories",
             joinColumns = @JoinColumn(name = "categoryId"),
             inverseJoinColumns = @JoinColumn(name = "productId"))

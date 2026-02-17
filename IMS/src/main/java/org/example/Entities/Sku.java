@@ -34,7 +34,7 @@ public class Sku {
     private boolean active = true;
 
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "sku_variation_options",
             joinColumns = @JoinColumn(name = "skuId"),

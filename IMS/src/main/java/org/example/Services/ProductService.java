@@ -155,6 +155,7 @@ public class ProductService {
             newProduct.setProductStock(request.getProductStock());
             newProduct.setProductCode(productCode);
             newProduct.setSupplier(supplier);
+            newProduct.setProductImage(request.getProductImage());
             newProduct.setBrand(brand);
 
             Set<Categories> categories = new HashSet<>(
@@ -272,6 +273,8 @@ public class ProductService {
         Brand brand = brandRepository.findById(request.getBrandId())
                 .orElseThrow(() -> new ResourceNotFoundException("Brand not found."));
 
+
+
         String safeName = Jsoup.clean(request.getProductName(), Safelist.none()).trim();
         String safeDescription = Jsoup.clean(request.getProductDescription(), Safelist.none()).trim();
         String productCode = request.getProductCode().toUpperCase();
@@ -284,6 +287,7 @@ public class ProductService {
         product.setProductCode(productCode);
         product.setSupplier(supplier);
         product.setBrand(brand);
+
 
 
 
@@ -356,13 +360,14 @@ public class ProductService {
                 stockMovementsRepository.save(stockMovement);
             }
 
+
+            }
+
+
             Set<Categories> categories = new HashSet<>(
                     categoryRepository.findAllById(request.getCategoryId())
             );
             product.setCategories(categories);
-            }
-
-
 
 
             Products updatedProduct = productRepository.save(product);
