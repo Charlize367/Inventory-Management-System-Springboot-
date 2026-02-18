@@ -226,7 +226,7 @@ public class SalesService {
         }
 
 
-        sale.setSalesPaymentStatus(Sales.SalesPaymentStatus.PENDING);
+        sale.setSalesPaymentStatus(Sales.SalesPaymentStatus.PAID);
         sale.setSalesAmount(totalAmount);
         Sales savedSales = salesRepository.save(sale);
         salesRepository.flush();

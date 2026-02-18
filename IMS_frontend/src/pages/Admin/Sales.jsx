@@ -137,14 +137,21 @@ const Sales = () => {
 
 
       const disableOption = (itemId, variationOption, variationId, product) => {
+
+    // takes a variation option with variation id
         const newOption = {
   ...variationOption,  
   variationId: variationId,  
 };
 
+        // takes selected id based on index 
         const item = selectedItems[itemId];
+        // reads var options array of the selected item
         const currentSelections = item?.variationOptions || [];
-        if (currentSelections.length === 0) {
+
+        console.log(product);
+        //if variation options of the selected item is empty, automatically disable the option. like if the stock for this option is completely zero, DISABLE.
+        
             const hasStockForOption = skus.some(sku => 
                 sku.product.productId === product.productId &&
                 sku.stockQuantity > 0 &&
@@ -152,23 +159,31 @@ const Sales = () => {
                     skuOpt.variationOptionId === variationOption.variationOptionId
             ));
 
-            return !hasStockForOption;
-        } 
+            if (!hasStockForOption) return true;
+        
+
+
+        // this forms a combo with the variation option (that is being determined) with the currently selected options to create a hypothetical combo
         const hypotheticalCombo = [...currentSelections.filter(opt => !opt.variationId || opt.variationId !== variationId), newOption];
         
        
+        // this will look for the corresponding sku combo of the hypothetical combo (doesn't matter the order)
         const matchingSkuCombo = skus.find(sku => 
-            sku.product.productId === product.productId &&
-            sku.variationOptions.length === hypotheticalCombo.length &&
-            sku.variationOptions.every((skuOpt, index) => 
-        skuOpt.variationOptionId === hypotheticalCombo[index].variationOptionId && skuOpt.variationId === hypotheticalCombo[index].variationId 
+    sku.product.productId === product.productId &&
+    sku.variationOptions.length === hypotheticalCombo.length &&
+    sku.variationOptions.every(skuOpt => 
+        hypotheticalCombo.some(h => 
+            h.variationId === skuOpt.variationId &&
+            h.variationOptionId === skuOpt.variationOptionId
+        )
     )
-        );
+);
         console.log(matchingSkuCombo)
         
+        //checks if the sku combo has no stock, DISABLE
         if (matchingSkuCombo?.stockQuantity === 0) return true;
 
-        
+        //ENABLE
         return false;
     }
 

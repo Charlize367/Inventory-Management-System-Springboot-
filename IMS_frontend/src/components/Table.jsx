@@ -145,21 +145,23 @@ console.log(tableData);
             <tr> 
                 
                 {headers.map((header) => (
-                    <th scope="col" className="px-6 py-3" key={header.key}>{header.header}</th>
-                ))}
-                {((role === "ADMIN" || role === "MANAGER") && disableEdit == "false") && (
-                <th scope="col" className="px-6 py-3">
-                    Edit
-                </th>
-                )}
+    <th scope="col" className="px-6 py-3 text-left" key={header.key}>
+        {header.header}
+    </th>
+))}
 
-                
-                {(role === "ADMIN" || role === "MANAGER") && (!headers.some(header => header.key === 'skuId')) && (
-                <th scope="col" className="px-6 py-3">
-                    Delete
-                </th>
-                
-                )}
+          {(role === "ADMIN" || role === "MANAGER") && disableEdit === "false" && (
+              <th scope="col" className="px-2 py-3 text-center w-24">
+                  Edit
+              </th>
+          )}
+
+          {(role === "ADMIN" || role === "MANAGER") && (!headers.some(header => header.key === 'skuId')) && (
+              <th scope="col" className="px-2 py-3 text-center w-24">
+                  Delete
+              </th>
+          )}
+
             </tr>
         </thead>
         <tbody>
@@ -250,18 +252,27 @@ console.log(tableData);
 
                 
 
-                {((role === "ADMIN" || role === "MANAGER") && disableEdit == "false") && (
-                <td className="px-6 py-4">
-                    <a href="#" onClick={() => onEditClick(row)} className="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</a>
-                </td>
-                )}
+                 {(role === "ADMIN" || role === "MANAGER") && disableEdit === "false" && (
+  <td className="px-6 py-4">
+    <button
+      onClick={() => onEditClick(row)}
+      className="px-4 py-2 bg-green-600 text-white font-medium rounded hover:bg-green-500 hover:shadow-md transition-all duration-200 cursor-pointer"
+    >
+      Edit
+    </button>
+  </td>
+)}
 
-
-                {(role === "ADMIN" || role === "MANAGER") && !row.skuId && (
-                <td className="px-6 py-4">
-                    <a href="#" onClick={() => onDeleteClick(getEntityId(row))} className="font-medium text-blue-600 dark:text-blue-500 hover:underline">Delete</a>
-                </td>
-                )}
+{(role === "ADMIN" || role === "MANAGER") &&  (!headers.some(header => header.key === 'skuId')) && (
+  <td className="px-6 py-4">
+    <button
+      onClick={() => onDeleteClick(getEntityId(row))}
+      className="px-4 py-2 bg-red-600 text-white font-medium rounded hover:bg-red-500 hover:shadow-md transition-all duration-200 cursor-pointer"
+    >
+      Delete
+    </button>
+  </td>
+)}
             </tr>
             ))}
         </tbody>

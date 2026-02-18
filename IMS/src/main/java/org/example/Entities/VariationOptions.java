@@ -31,15 +31,15 @@ public class VariationOptions {
     private Variation variation;
 
 
-    @ManyToMany(mappedBy = "variationOptions")
+    @ManyToMany(mappedBy = "variationOptions", fetch = FetchType.EAGER)
     private Set<Sku> skus = new HashSet<>();
 
-    @ManyToMany(mappedBy = "variationOptions")
+    @ManyToMany(mappedBy = "variationOptions", fetch = FetchType.EAGER)
     private List<PurchaseItems> purchaseItems = new ArrayList<>();
 
 
 
-    @ManyToMany(mappedBy = "variationOptions")
+    @ManyToMany(mappedBy = "variationOptions", fetch = FetchType.EAGER)
     private List<SaleItems> saleItems = new ArrayList<>();
 
     public String getVariationOptionName() {

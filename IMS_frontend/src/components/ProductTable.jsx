@@ -49,13 +49,13 @@ console.log(data);
                 ))}
 
                 {(role === "ADMIN" || role === "MANAGER") && (
-                <th scope="col" className="px-6 py-3">
+                <th scope="col" className="px-6 text-center py-3">
                     Edit
                 </th>
                 )}
 
                 {(role === "ADMIN" || role === "MANAGER") && (
-                <th scope="col" className="px-6 py-3">
+                <th scope="col" className="px-6 py-3 text-center">
                     Delete
                 </th>
                 )}
@@ -113,16 +113,27 @@ console.log(data);
         
 
                 {(role === "ADMIN" || role === "MANAGER") && (
-                <td className="px-6 py-4">
-                    <a href="#" onClick={() => onEditClick(row)} className="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</a>
-                </td>
-                )}
+  <td className="px-6 py-4">
+    <button
+      onClick={() => onEditClick(row)}
+      className="px-4 py-2 bg-green-600 text-white font-medium rounded hover:bg-green-500 hover:shadow-md transition-all duration-200 cursor-pointer"
+    >
+      Edit
+    </button>
+  </td>
+)}
 
-                {(role === "ADMIN" || role === "MANAGER") && (
-                <td className="px-6 py-4">
-                    <a href="#" onClick={() => onDeleteClick(row.productId)} className="font-medium text-blue-600 dark:text-blue-500 hover:underline">Delete</a>
-                </td>
-                )}
+{(role === "ADMIN" || role === "MANAGER") && (
+  <td className="px-6 py-4">
+    <button
+      onClick={() => onDeleteClick(row.productId)}
+      className="px-4 py-2 bg-red-600 text-white font-medium rounded hover:bg-red-500 hover:shadow-md transition-all duration-200 cursor-pointer"
+    >
+      Delete
+    </button>
+  </td>
+)}
+
             </tr>
             ))}
         </tbody>
