@@ -8,7 +8,7 @@ const ProductTable = ({ columns, headers, data,  onAddClick, onEditClick, onDele
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-      if (data) {
+      if (data.length > 0) {
         
         setLoading(false);
       }
@@ -28,8 +28,10 @@ console.log(data);
   return (
     <div>
     {loading ? (
-    <p className="flex justify-center mt-4">Loading...</p>
-    ) : data.length === 0 ? (
+    <div class="flex items-center justify-center">
+  <div class="w-15 h-15  border-4 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+</div>
+    ) : data.length === 0 && !loading ? (
       <div>
       <p className="flex justify-center mt-4">No products found.</p>
       

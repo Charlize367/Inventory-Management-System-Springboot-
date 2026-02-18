@@ -108,7 +108,7 @@ console.log(localStorage.getItem('role'))
           
           <div className="bg-white p-4 rounded"><DailyMetrics totalSales={dashboardData.totalSales} totalPurchases={dashboardData.totalPurchases} totalProducts={dashboardData.activeProducts} totalCustomers={dashboardData.totalCustomers} totalSuppliers={dashboardData.totalSuppliers} totalProfit={dashboardData.totalProfit}/></div>
           <div className="bg-white p-4 rounded">
-                <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-30 flex justify-center">
+                <div class="grid grid-cols-2 gap-4  lg:gap-30 flex justify-center">
                     <div class="bg-white p-4 rounded"><TransactionsWeeklyStats last7DaysSale={dashboardData.last7DaysSale} last7DaysPurchase={dashboardData.last7DaysPurchase}/></div>
                     <div class="bg-white p-4 rounded"><TopProducts topProducts={dashboardData.topSellingProducts}/></div>
                 </div>

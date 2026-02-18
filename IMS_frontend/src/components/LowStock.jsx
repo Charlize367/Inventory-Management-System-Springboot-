@@ -13,7 +13,9 @@ const LowStock = ({ lowStockProducts}) => {
     <div>
 {loading ? (
   
-    <p className="flex justify-center mt-4">Loading...</p>
+    <div class="flex items-center justify-center">
+  <div class="w-10 h-10 mt-20 border-4 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+</div>
     
    
     ) : lowStockProducts.length === 0 ? (

@@ -14,7 +14,7 @@ const Table = ({ headers, columns, data, onAddClick, onEditClick, onDeleteClick,
     };
 
 useEffect(() => {
-  if (data) {
+  if (data.length > 0) {
     setTableData(data);
     setLoading(false);
   }
@@ -115,16 +115,18 @@ console.log(tableData);
 
   return (
     <div>
-    {loading ? (
+    {loading  ? (
   
-    <p className="flex justify-center mt-4">Loading...</p>
+    <div class="flex items-center justify-center">
+  <div class="w-15 h-15 mt-30 border-4 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+</div>
     
    
-    ) : data.length === 0 ? (
+    ) : data.length === 0 && !loading ? (
     <div>
       <p className="flex justify-center mt-4">No records found.</p>
       {(
-  (role === "ADMIN" || role === "MANAGER") || 
+  (role === "ADMIN" || role === "MANAGER" ) || 
   (headers.some(header => header.key === 'purchaseId') || headers.some(header => header.key === 'salesId'))
 ) && disableAdd === "false" && (
   <div className="flex items-center justify-center">

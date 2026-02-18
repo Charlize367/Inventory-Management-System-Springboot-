@@ -1,6 +1,6 @@
 import React from 'react'
 import ApexCharts from 'apexcharts';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 const TransactionsWeeklyStats = ({ last7DaysSale, last7DaysPurchase }) => {
 
 const sales = last7DaysSale?.map((d) => ({
@@ -107,14 +107,17 @@ const options = {
 }
 
 console.log(options);
+const [loading, setLoading] = useState(true);
 useEffect(() => {
   const chart = new ApexCharts(document.querySelector("#column-chart"), options);
   chart.render();
-
+setLoading(false);
   return () => {
     chart.destroy(); 
   };
+  
 }, [sales, purchases]);
+
 
   return (
     <div>
@@ -128,6 +131,9 @@ useEffect(() => {
     </div>
   </div>
 
+{loading && (<div class="flex items-center justify-center">
+  <div class="w-10 h-10 mt-20 border-4 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+</div>)}
   <div id="column-chart"></div>
     <div className="grid grid-cols-1 items-center border-gray-100 dark:border-gray-400 justify-between">
       <div className="flex justify-between items-center pt-5">
