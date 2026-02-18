@@ -25,7 +25,7 @@ public class Variation {
     private List<VariationOptions> variationOptions = new ArrayList<>();
 
 
-    @ManyToMany(mappedBy = "variations")
+    @ManyToMany(mappedBy = "variations", fetch = FetchType.EAGER)
     private Set<Products> products = new HashSet<>();
 
     public Variation(Long variationId, String variationName) {

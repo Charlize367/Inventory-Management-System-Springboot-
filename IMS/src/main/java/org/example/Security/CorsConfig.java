@@ -20,7 +20,7 @@ public class CorsConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:5177","http://localhost:5176", "http://localhost:5178", "http://13.60.234.33:3000", url));
+        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:5177","http://localhost:5176", "http://localhost:5178", "http://13.60.234.33:3000", "http://16.171.140.9:3000", url));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
@@ -38,7 +38,7 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:5173", "http://localhost:5177","http://localhost:5176", "http://localhost:5178", "http://13.60.234.33:3000", url  )
+                        .allowedOrigins("http://localhost:5173", "http://localhost:5177","http://localhost:5176", "http://localhost:5178", "http://13.60.234.33:3000", "http://16.171.140.9:3000", url  )
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
