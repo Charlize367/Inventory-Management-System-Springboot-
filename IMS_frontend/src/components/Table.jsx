@@ -23,19 +23,20 @@ useEffect(() => {
 
 
 const getAccessorValue = (row, accessor) => {
+  //split object accessor into different keys
   const keys = accessor.split('.');
 
   const getValue = (obj, keys) => {
 
-    if(!obj) return null;
+    if(!obj) return null; //the whole object, if null or nothing return null
     if(keys.length == 0) return obj;
 
-    const [firstKey, ...restKeys] = keys;
+    const [firstKey, ...restKeys] = keys; //extracting the keys
 
     if(Array.isArray(obj)) {
-      return obj.flatMap(item => getValue(item?.[firstKey], restKeys));
+      return obj.flatMap(item => getValue(item?.[firstKey], restKeys)); //if result is still object go back to get value
     } else {
-      return getValue(obj[firstKey], restKeys);
+      return getValue(obj[firstKey], restKeys); // if not longer object return to final
     }
 
   };
