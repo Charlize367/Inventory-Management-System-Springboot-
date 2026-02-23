@@ -1,6 +1,7 @@
 package org.example.Controllers;
 
 import org.example.DTO.Request.*;
+import org.example.DTO.Response.PageResponse;
 import org.example.DTO.Response.PurchaseResponse;
 import org.example.DTO.Response.SkuResponse;
 import org.example.DTO.Response.UserResponse;
@@ -38,10 +39,10 @@ public class SkuController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<SkuResponse>> getSku(@RequestParam(defaultValue = "0") int page,
-                                                          @RequestParam(defaultValue = "5") int size,
-                                                          @RequestParam(defaultValue = "skuId") String sortBy,
-                                                          @RequestParam(defaultValue = "true") boolean descending
+    public ResponseEntity<PageResponse<SkuResponse>> getSku(@RequestParam(defaultValue = "0") int page,
+                                                            @RequestParam(defaultValue = "5") int size,
+                                                            @RequestParam(defaultValue = "skuId") String sortBy,
+                                                            @RequestParam(defaultValue = "true") boolean descending
                                                           ) {
         Sort sort = descending ?  Sort.by(Sort.Direction.DESC, "stockQuantity") : Sort.by(sortBy).descending() ;
         Pageable pageable = PageRequest.of(page, size, sort);

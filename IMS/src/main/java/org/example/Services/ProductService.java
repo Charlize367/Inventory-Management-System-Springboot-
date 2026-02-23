@@ -2,6 +2,8 @@ package org.example.Services;
 
 import jakarta.transaction.Transactional;
 import org.example.DTO.Request.ProductRequest;
+import org.example.DTO.Response.CustomerResponse;
+import org.example.DTO.Response.PageResponse;
 import org.example.DTO.Response.ProductResponse;
 import org.example.Entities.*;
 import org.example.Exception.ResourceAlreadyExistsException;
@@ -12,6 +14,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -60,27 +65,28 @@ public class ProductService {
     }
 
 
-    public Page<ProductResponse> getProducts(Long categoryId, Long brandId, Pageable pageable) {
+    @Cacheable(value = "categories", key = "'page_'+#pageable.pageNumber+'_'+#pageable.pageSize+'_'+#pageable.sort.toString()+'_'+#categoryId+'_'+#brandId")
+    public PageResponse<ProductResponse> getProducts(Long categoryId, Long brandId, Pageable pageable) {
         logger.info("Displaying all products");
+        Page<Products> page = productRepository.findByActiveTrue(pageable);
 
         if(categoryId != null && brandId != null) {
-            return productRepository.findByBrandBrandIdAndCategoriesCategoryIdAndActiveTrue(brandId, categoryId, pageable)
-                    .map(productMapper::toResponse);
+            page = productRepository.findByBrandBrandIdAndCategoriesCategoryIdAndActiveTrue(brandId, categoryId, pageable);
         }
 
         if (categoryId != null) {
-            return productRepository.findByCategoriesCategoryIdAndActiveTrue(categoryId, pageable)
-                    .map(productMapper::toResponse);
+            page = productRepository.findByCategoriesCategoryIdAndActiveTrue(categoryId, pageable);
         }
 
         if (brandId != null) {
-            return productRepository.findByBrandBrandIdAndActiveTrue(brandId, pageable)
-                    .map(productMapper::toResponse);
+            page = productRepository.findByBrandBrandIdAndActiveTrue(brandId, pageable);
         }
 
-        return productRepository.findByActiveTrue(pageable)
-                .map(productMapper::toResponse);
+        Page<ProductResponse> mapped = page.map(productMapper::toResponse);
+
+        return new PageResponse<>(mapped);
     }
+
 
     public List<ProductResponse> getAllProducts(Long categoryId, Long brandId, String query) {
         logger.info("Displaying all products without pagination");
@@ -112,11 +118,12 @@ public class ProductService {
     }
 
 
-    public ProductResponse getProductById(Long id) {
-        logger.info("Fetching product with id: {}", id);
-        Products product = productRepository.findByProductIdAndActiveTrue(id)
+    @Cacheable(value = "product", key = "#productId")
+    public ProductResponse getProductById(Long productId) {
+        logger.info("Fetching product with id: {}", productId);
+        Products product = productRepository.findByProductIdAndActiveTrue(productId)
                 .orElseThrow(() -> {
-                    logger.error("Product with id: {} does not exist", id);
+                    logger.error("Product with id: {} does not exist", productId);
                     return new ResourceNotFoundException("Product not found.");
                 });
 
@@ -125,6 +132,7 @@ public class ProductService {
     }
 
 
+    @CachePut(value = "product", key = "#savedProduct.productId")
     @Transactional
     public ProductResponse addProduct(ProductRequest request) {
 
@@ -231,32 +239,7 @@ public class ProductService {
 
     }
 
-    public void saveImage(Long productId, MultipartFile file) throws IOException {
-        Products product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
-
-
-        Files.createDirectories(Paths.get(uploadDirectory));
-
-        if (product.getProductImage() != null) {
-            Path oldPath = Paths.get(uploadDirectory, product.getProductImage());
-
-            if (Files.exists(oldPath)) {
-                Files.delete(oldPath);
-            }
-        }
-
-        String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-        Path filePath = Paths.get(uploadDirectory, fileName);
-
-        Files.write(filePath, file.getBytes());
-
-
-        product.setProductImage(fileName);
-        productRepository.save(product);
-    }
-
-
+    @CachePut(value = "product", key = "#updatedProduct.productId")
     public ProductResponse updateProductDetails(Long id, ProductRequest request) {
 
         logger.info("Updating product id: {} ", id);
@@ -378,16 +361,17 @@ public class ProductService {
     }
 
 
-    public void deleteProduct(Long id) {
+    @CacheEvict(value = "product", key = "#productId")
+    public void deleteProduct(Long productId) {
 
         logger.info("Attempting to delete product by ID");
-        Products product = productRepository.findById(id)
+        Products product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
         product.setActive(false);
         productRepository.save(product);
 
-        logger.info("Successfully deleted product: {} (id: {})", product.getProductName(), id);
+        logger.info("Successfully deleted product: {} (id: {})", product.getProductName(), productId);
     }
 
 

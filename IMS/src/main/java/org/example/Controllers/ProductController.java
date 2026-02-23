@@ -4,6 +4,7 @@ package org.example.Controllers;
 import org.example.DTO.Request.CustomerRequest;
 import org.example.DTO.Request.ProductRequest;
 import org.example.DTO.Response.CustomerResponse;
+import org.example.DTO.Response.PageResponse;
 import org.example.DTO.Response.ProductResponse;
 import org.example.Entities.Categories;
 import org.example.Repository.CategoryRepository;
@@ -45,12 +46,12 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<ProductResponse>> getProducts(@RequestParam(defaultValue = "0") int page,
-                                                             @RequestParam(defaultValue = "5") int size,
-                                                             @RequestParam(defaultValue = "productId") String sortBy,
-                                                             @RequestParam(defaultValue = "true") boolean descending,
-                                                            @RequestParam(required = false) Long categoryId,
-                                                             @RequestParam(required = false) Long brandId) {
+    public ResponseEntity<PageResponse<ProductResponse>> getProducts(@RequestParam(defaultValue = "0") int page,
+                                                                     @RequestParam(defaultValue = "5") int size,
+                                                                     @RequestParam(defaultValue = "productId") String sortBy,
+                                                                     @RequestParam(defaultValue = "true") boolean descending,
+                                                                     @RequestParam(required = false) Long categoryId,
+                                                                     @RequestParam(required = false) Long brandId) {
         Sort sort = descending ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
@@ -78,14 +79,6 @@ public class ProductController {
                 .body(saved);
     }
 
-    @PostMapping("/image/{id}")
-    public ResponseEntity<Void> uploadImage(
-            @PathVariable Long id,
-            @RequestParam("productImage") MultipartFile file
-    ) throws IOException {
-        productService.saveImage(id, file);
-        return ResponseEntity.ok().build();
-    }
 
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponse> updateProduct(@Validated @PathVariable Long id, @RequestBody ProductRequest request) {

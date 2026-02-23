@@ -2,6 +2,7 @@ package org.example.Services;
 
 import org.example.DTO.Request.CategoryRequest;
 import org.example.DTO.Response.CategoryResponse;
+import org.example.DTO.Response.PageResponse;
 import org.example.Entities.Categories;
 import org.example.Exception.ResourceAlreadyExistsException;
 import org.example.Exception.ResourceNotFoundException;
@@ -11,12 +12,14 @@ import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class CategoryService {
@@ -31,12 +34,19 @@ public class CategoryService {
     }
 
 
-    public Page<CategoryResponse> getCategories(Pageable pageable) {
+    @Cacheable(value = "categories", key = "'page_'+#pageable.pageNumber+'_'+#pageable.pageSize+'_'+#pageable.sort.toString()")
+    public PageResponse<CategoryResponse> getCategories(Pageable pageable) {
+
 
         logger.info("Displaying all categories");
-        return categoryRepository.findAll(pageable)
-                .map(categoryMapper::toResponse);
+        Page<Categories> page = categoryRepository.findAll(pageable);
+
+        Page<CategoryResponse> mapped = page.map(categoryMapper::toResponse);
+
+        return new PageResponse<>(mapped);
     }
+
+
 
     public List<CategoryResponse> getAllCategories() {
 
@@ -46,17 +56,19 @@ public class CategoryService {
                 .toList();
     }
 
-    public CategoryResponse getCategoryById(Long id) {
-        logger.info("Fetching category with id: {}", id);
-        Categories category = categoryRepository.findById(id)
+    @Cacheable(value = "category", key = "#categoryId")
+    public CategoryResponse getCategoryById(Long categoryId) {
+        logger.info("Fetching category with categoryId: {}", categoryId);
+        Categories category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> {
-                    logger.error("Category with id: {} does not exist", id);
+                    logger.error("Category with categoryId: {} does not exist", categoryId);
                     return new ResourceNotFoundException("Category not found.");
                 });
-        logger.info("Successfully fetched category:{} (id: {})", category.getCategoryName(), category.getCategoryId() );
+        logger.info("Successfully fetched category:{} (categoryId: {})", category.getCategoryName(), category.getCategoryId() );
         return categoryMapper.toResponse(category);
     }
 
+    @CachePut(value = "category", key = "#savedCategory.categoryId")
     public CategoryResponse addCategory(CategoryRequest request) {
 
         logger.info("Attempting to add new category with name: {}", request.getCategoryName());
@@ -73,14 +85,15 @@ public class CategoryService {
         newCategory.setCategoryName(safeName);
 
 
-        categoryRepository.save(newCategory);
+        Categories savedCategory = categoryRepository.save(newCategory);
 
         logger.info("Successfully added new category: {}", safeName);
 
-        return categoryMapper.toResponse(newCategory);
+        return categoryMapper.toResponse(savedCategory);
     }
 
 
+    @CachePut(value = "category", key = "#savedCategory.categoryId")
     public CategoryResponse updateCategoryName(Long id, CategoryRequest request) {
 
         logger.info("Updating category id: {} with new name: {}", id, request.getCategoryName());
@@ -92,14 +105,15 @@ public class CategoryService {
                 });
 
         String safeName = Jsoup.clean(request.getCategoryName(), Safelist.none()).trim();
-        category.setCategoryName(request.getCategoryName());
+        category.setCategoryName(safeName);
 
-        categoryRepository.save(category);
+        Categories updatedCategory = categoryRepository.save(category);
         logger.info("Successfully updated category id: {} to name: {}", id, request.getCategoryName());
 
-        return categoryMapper.toResponse(category);
+        return categoryMapper.toResponse(updatedCategory);
     }
 
+    @CacheEvict(value = "category", key = "#categoryId")
     public void deleteCategory(Long id) {
 
         logger.info("Attempting to delete category with id: {}", id);

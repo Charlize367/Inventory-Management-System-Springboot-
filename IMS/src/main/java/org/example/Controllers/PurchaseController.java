@@ -4,6 +4,7 @@ import org.example.DTO.Request.CustomerRequest;
 import org.example.DTO.Request.PurchaseRequest;
 import org.example.DTO.Request.PurchaseStatusRequest;
 import org.example.DTO.Response.CustomerResponse;
+import org.example.DTO.Response.PageResponse;
 import org.example.DTO.Response.PurchaseResponse;
 import org.example.Repository.PurchaseRepository;
 import org.example.Services.PurchaseService;
@@ -44,11 +45,11 @@ public class PurchaseController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<PurchaseResponse>> getPurchases(@RequestParam(defaultValue = "0") int page,
-                                                               @RequestParam(defaultValue = "5") int size,
-                                                               @RequestParam(defaultValue = "purchaseId") String sortBy,
-                                                               @RequestParam(defaultValue = "true") boolean descending,
-                                                               @RequestParam(required = false) Long staffId ) {
+    public ResponseEntity<PageResponse<PurchaseResponse>> getPurchases(@RequestParam(defaultValue = "0") int page,
+                                                                       @RequestParam(defaultValue = "5") int size,
+                                                                       @RequestParam(defaultValue = "purchaseId") String sortBy,
+                                                                       @RequestParam(defaultValue = "true") boolean descending,
+                                                                       @RequestParam(required = false) Long staffId ) {
         Sort sort = descending ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 

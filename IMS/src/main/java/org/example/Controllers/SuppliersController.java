@@ -4,6 +4,7 @@ package org.example.Controllers;
 import org.example.DTO.Request.CustomerRequest;
 import org.example.DTO.Request.SupplierRequest;
 import org.example.DTO.Response.CustomerResponse;
+import org.example.DTO.Response.PageResponse;
 import org.example.DTO.Response.SupplierResponse;
 import org.example.Entities.Suppliers;
 import org.example.Repository.SuppliersRepository;
@@ -36,10 +37,10 @@ public class SuppliersController {
 
 
     @GetMapping
-    public ResponseEntity<Page<SupplierResponse>> getSuppliers(@RequestParam(defaultValue = "0") int page,
-                                                               @RequestParam(defaultValue = "5") int size,
-                                                               @RequestParam(defaultValue = "supplierId") String sortBy,
-                                                               @RequestParam(defaultValue = "true") boolean descending) {
+    public ResponseEntity<PageResponse<SupplierResponse>> getSuppliers(@RequestParam(defaultValue = "0") int page,
+                                                                       @RequestParam(defaultValue = "5") int size,
+                                                                       @RequestParam(defaultValue = "supplierId") String sortBy,
+                                                                       @RequestParam(defaultValue = "true") boolean descending) {
         Sort sort = descending ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 

@@ -1,9 +1,10 @@
 package org.example.Services;
 
 import org.example.DTO.Request.SupplierRequest;
+import org.example.DTO.Response.PageResponse;
+import org.example.DTO.Response.SkuResponse;
 import org.example.DTO.Response.SupplierResponse;
-import org.example.Entities.Customers;
-import org.example.Entities.Purchases;
+import org.example.Entities.Sku;
 import org.example.Entities.Suppliers;
 import org.example.Exception.ResourceAlreadyExistsException;
 import org.example.Exception.ResourceNotFoundException;
@@ -13,12 +14,14 @@ import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class SuppliersService {
@@ -33,11 +36,18 @@ public class SuppliersService {
         this.suppliersMapper = suppliersMapper;
 
     }
-    public Page<SupplierResponse> getSuppliers(Pageable pageable) {
+
+    @Cacheable(value = "suppliers", key = "'page_'+#pageable.pageNumber+'_'+#pageable.pageSize+'_'+#pageable.sort.toString()")
+    public PageResponse<SupplierResponse> getSuppliers(Pageable pageable) {
         logger.info("Displaying all suppliers");
-        return suppliersRepository.findAll(pageable)
-                .map(suppliersMapper::toResponse);
+        Page<Suppliers> page = suppliersRepository.findAll(pageable);
+
+        Page<SupplierResponse> mapped = page.map(suppliersMapper::toResponse);
+
+        return new PageResponse<>(mapped);
     }
+
+
 
     public List<SupplierResponse> getAllSuppliers() {
         logger.info("Displaying all suppliers with pagination");
@@ -46,17 +56,20 @@ public class SuppliersService {
                 .toList();
     }
 
-    public SupplierResponse getSupplierById(Long id) {
-        logger.info("Fetching supplier with id: {}", id);
-        Suppliers supplier = suppliersRepository.findById(id)
+
+    @Cacheable(value = "supplier", key = "#supplierId")
+    public SupplierResponse getSupplierById(Long supplierId) {
+        logger.info("Fetching supplier with supplierId: {}", supplierId);
+        Suppliers supplier = suppliersRepository.findById(supplierId)
                 .orElseThrow(() -> {
-                    logger.error("Supplier with id: {} does not exist", id);
+                    logger.error("Supplier with supplierId: {} does not exist", supplierId);
                     return new ResourceNotFoundException("Supplier not found.");
                 });
-        logger.info("Successfully fetched supplier:{} (id: {})", supplier.getSupplierName(), supplier.getSupplierId() );
+        logger.info("Successfully fetched supplier:{} (supplierId: {})", supplier.getSupplierName(), supplier.getSupplierId() );
         return suppliersMapper.toResponse(supplier);
     }
 
+    @CachePut(value = "supplier", key = "#savedSupplier.supplierId")
     public SupplierResponse addSupplier(SupplierRequest request) {
 
         logger.info("Attempting to add new supplier with email: {}", request.getSupplierEmail());
@@ -89,6 +102,7 @@ public class SuppliersService {
     }
 
 
+    @CachePut(value = "supplier", key = "#updatedSupplier.supplierId")
     public SupplierResponse updateSupplierDetails(Long id, SupplierRequest request) {
         logger.info("Updating supplier id: {} ", id);
 
@@ -115,12 +129,13 @@ public class SuppliersService {
         return suppliersMapper.toResponse(updatedSupplier);
     }
 
-    public void deleteSupplier(Long id) {
+    @CacheEvict(value = "supplier", key = "#supplierId")
+    public void deleteSupplier(Long supplierId) {
         logger.info("Attempting to delete supplier by ID");
-        Suppliers suppliers = suppliersRepository.findById(id)
+        Suppliers suppliers = suppliersRepository.findById(supplierId)
                 .orElseThrow(() -> new ResourceNotFoundException("Supplier not found"));
         suppliersRepository.delete(suppliers);
 
-        logger.info("Successfully deleted supplier: {} (id: {})", suppliers.getSupplierName(), id);
+        logger.info("Successfully deleted supplier: {} (supplierId: {})", suppliers.getSupplierName(), supplierId);
     }
 }

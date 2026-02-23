@@ -2,6 +2,7 @@ package org.example.Services;
 
 import jakarta.transaction.Transactional;
 import org.example.DTO.Request.*;
+import org.example.DTO.Response.PageResponse;
 import org.example.DTO.Response.PurchaseResponse;
 import org.example.DTO.Response.SalesResponse;
 import org.example.Entities.*;
@@ -11,11 +12,13 @@ import org.example.Mapper.SalesMapper;
 import org.example.Repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -56,27 +59,33 @@ public class SalesService {
     private final SalesMapper salesMapper;
     private final ApplicationEventPublisher eventPublisher;
 
-    public Page<SalesResponse> getAllSales(Long staffId, Pageable pageable) {
+
+    @Cacheable(value = "sales", key = "'page_'+#pageable.pageNumber+'_'+#pageable.pageSize+'_'+#pageable.sort.toString()")
+    public PageResponse<SalesResponse> getAllSales(Long staffId, Pageable pageable) {
         logger.info("Displaying all sales");
+        Page<Sales> page = salesRepository.findAll(pageable);
         if (staffId != null) {
-            return salesRepository.findSalesByStaff_UserId(staffId, pageable)
-                    .map(salesMapper::toResponse);
+            page =  salesRepository.findSalesByStaff_UserId(staffId, pageable);
         }
-        return salesRepository.findAll(pageable)
-                .map(salesMapper::toResponse);
+        Page<SalesResponse> mapped = page.map(salesMapper::toResponse);
+
+        return new PageResponse<>(mapped);
     }
 
-    public SalesResponse getSalesById(Long id) {
-        logger.info("Fetching sales record with id: {}", id);
-        Sales sale = salesRepository.findById(id)
+
+    @Cacheable(value = "sales", key = "#saleId")
+    public SalesResponse getSalesById(Long saleId) {
+        logger.info("Fetching sales record with saleId: {}", saleId);
+        Sales sale = salesRepository.findById(saleId)
                 .orElseThrow(() -> {
-                    logger.error("Sales record with id: {} does not exist", id);
+                    logger.error("Sales record with saleId: {} does not exist", saleId);
                     return new ResourceNotFoundException("Sales record not found.");
                 });
-        logger.info("Successfully fetched sales record with id: {}", id);
+        logger.info("Successfully fetched sales record with saleId: {}", saleId);
         return salesMapper.toResponse(sale);
     }
 
+    @CachePut(value = "sale", key = "#savedSales.saleId")
     @Transactional
     public SalesResponse addSale(SalesRequest request) {
 
@@ -236,6 +245,7 @@ public class SalesService {
     }
 
 
+    @CachePut(value = "sale", key = "#savedSales.saleId")
     public SalesResponse updateSalesPaymentStatus(Long id, SalesPaymentStatusRequest request) {
 
         logger.info("Updating status id: {} with new name: {}", id, request.getSalesPaymentStatus());
@@ -254,12 +264,13 @@ public class SalesService {
         return salesMapper.toResponse(updatedSale);
     }
 
-    public void deleteSale(Long id) {
-        logger.info("Deleting purchase record with id: {}", id);
-        Sales sale = salesRepository.findById(id)
+    @CacheEvict(value = "sale", key = "#salesId")
+    public void deleteSale(Long salesId) {
+        logger.info("Deleting purchase record with id: {}", salesId);
+        Sales sale = salesRepository.findById(salesId)
                 .orElseThrow(() -> new ResourceNotFoundException("Sale not found"));
         salesRepository.delete(sale);
-        logger.info("Successfully deleted sales record with id: {}", id);
+        logger.info("Successfully deleted sales record with id: {}", salesId);
     }
 
 

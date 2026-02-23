@@ -1,10 +1,7 @@
 package org.example.Controllers;
 
 import org.example.DTO.Request.*;
-import org.example.DTO.Response.CustomerResponse;
-import org.example.DTO.Response.ProductResponse;
-import org.example.DTO.Response.PurchaseResponse;
-import org.example.DTO.Response.VariationResponse;
+import org.example.DTO.Response.*;
 import org.example.Repository.ProductRepository;
 import org.example.Repository.VariationRepository;
 import org.example.Services.VariationService;
@@ -37,10 +34,10 @@ public class VariationController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<VariationResponse>> getVariation(@RequestParam(defaultValue = "0") int page,
-                                                               @RequestParam(defaultValue = "5") int size,
-                                                               @RequestParam(defaultValue = "variationId") String sortBy,
-                                                               @RequestParam(defaultValue = "true") boolean descending
+    public ResponseEntity<PageResponse<VariationResponse>> getVariation(@RequestParam(defaultValue = "0") int page,
+                                                                        @RequestParam(defaultValue = "5") int size,
+                                                                        @RequestParam(defaultValue = "variationId") String sortBy,
+                                                                        @RequestParam(defaultValue = "true") boolean descending
                                                                ) {
         Sort sort = descending ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);

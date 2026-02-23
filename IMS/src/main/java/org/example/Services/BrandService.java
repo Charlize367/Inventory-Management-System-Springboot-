@@ -4,6 +4,7 @@ import org.example.DTO.Request.BrandRequest;
 import org.example.DTO.Request.CategoryRequest;
 import org.example.DTO.Response.BrandResponse;
 import org.example.DTO.Response.CategoryResponse;
+import org.example.DTO.Response.PageResponse;
 import org.example.Entities.Brand;
 import org.example.Entities.Categories;
 import org.example.Exception.ResourceAlreadyExistsException;
@@ -14,6 +15,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -32,13 +36,18 @@ public class BrandService {
         this.brandMapper = brandMapper;
     }
 
-
-    public Page<BrandResponse> getBrands(Pageable pageable) {
+    @Cacheable(value = "brands", key = "'page_'+#pageable.pageNumber+'_'+#pageable.pageSize+'_'+#pageable.sort.toString()")
+    public PageResponse<BrandResponse> getBrands(Pageable pageable) {
 
         logger.info("Displaying all categories");
-        return brandRepository.findAll(pageable)
-                .map(brandMapper::toResponse);
+
+        Page<Brand> page = brandRepository.findAll(pageable);
+
+        Page<BrandResponse> mapped = page.map(brandMapper::toResponse);
+
+        return new PageResponse<>(mapped);
     }
+
 
     public List<BrandResponse> getAllBrands() {
 
@@ -46,19 +55,23 @@ public class BrandService {
         return brandRepository.findAll().stream()
                 .map(brandMapper::toResponse)
                 .toList();
+
+
     }
 
-    public BrandResponse getBrandById(Long id) {
-        logger.info("Fetching brand with id: {}", id);
-        Brand brand = brandRepository.findById(id)
+    @Cacheable(value = "brand", key = "#brandId")
+    public BrandResponse getBrandById(Long brandId) {
+        logger.info("Fetching brand with id: {}", brandId);
+        Brand brand = brandRepository.findById(brandId)
                 .orElseThrow(() -> {
-                    logger.error("Brand with id: {} does not exist", id);
+                    logger.error("Brand with id: {} does not exist", brandId);
                     return new ResourceNotFoundException("Brand not found.");
                 });
         logger.info("Successfully fetched brand:{} (id: {})", brand.getBrandName(), brand.getBrandId() );
         return brandMapper.toResponse(brand);
     }
 
+    @CachePut(value = "brand", key = "#savedBrand.brandId")
     public BrandResponse addBrand(BrandRequest request) {
 
         logger.info("Attempting to add new brand with name: {}", request.getBrandName());
@@ -74,14 +87,15 @@ public class BrandService {
         Brand newBrand = new Brand();
         newBrand.setBrandName(safeName);
 
-        brandRepository.save(newBrand);
+        Brand savedBrand = brandRepository.save(newBrand);
 
         logger.info("Successfully added new brand: {}", safeName);
 
-        return brandMapper.toResponse(newBrand);
+        return brandMapper.toResponse(savedBrand);
     }
 
 
+    @CachePut(value = "brand", key = "#savedBrand.brandId")
     public BrandResponse updateBrandName(Long id, BrandRequest request) {
 
         logger.info("Updating brand id: {} with new name: {}", id, request.getBrandName());
@@ -95,12 +109,13 @@ public class BrandService {
         String safeName = Jsoup.clean(request.getBrandName(), Safelist.none()).trim();
         brand.setBrandName(safeName);
 
-        brandRepository.save(brand);
+        Brand updatedBrand = brandRepository.save(brand);
         logger.info("Successfully updated brand id: {} to name: {}", id, request.getBrandName());
 
-        return brandMapper.toResponse(brand);
+        return brandMapper.toResponse(updatedBrand);
     }
 
+    @CacheEvict(value = "brand", key = "#brandId")
     public void deleteBrand(Long id) {
 
         logger.info("Attempting to delete brand with id: {}", id);

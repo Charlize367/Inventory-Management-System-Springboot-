@@ -4,6 +4,7 @@ import org.example.DTO.Request.CustomerRequest;
 import org.example.DTO.Request.StockMovementRequest;
 import org.example.DTO.Response.CategoryResponse;
 import org.example.DTO.Response.CustomerResponse;
+import org.example.DTO.Response.PageResponse;
 import org.example.DTO.Response.StockMovementResponse;
 import org.example.Repository.CategoryRepository;
 import org.example.Repository.StockMovementsRepository;
@@ -36,10 +37,10 @@ public class StockMovementsController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<StockMovementResponse>> getStockMovements(@RequestParam(defaultValue = "0") int page,
-                                                                         @RequestParam(defaultValue = "5") int size,
-                                                                         @RequestParam(defaultValue = "stockMovementId") String sortBy,
-                                                                         @RequestParam(defaultValue = "true") boolean descending) {
+    public ResponseEntity<PageResponse<StockMovementResponse>> getStockMovements(@RequestParam(defaultValue = "0") int page,
+                                                                                 @RequestParam(defaultValue = "5") int size,
+                                                                                 @RequestParam(defaultValue = "stockMovementId") String sortBy,
+                                                                                 @RequestParam(defaultValue = "true") boolean descending) {
         Sort sort = descending ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 

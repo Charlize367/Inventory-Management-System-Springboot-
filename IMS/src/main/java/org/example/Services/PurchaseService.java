@@ -1,12 +1,12 @@
 package org.example.Services;
 
 
-import io.sentry.protocol.App;
 import jakarta.transaction.Transactional;
 import org.example.DTO.Request.PurchaseItemRequest;
 import org.example.DTO.Request.PurchaseRequest;
 import org.example.DTO.Request.PurchaseStatusRequest;
-import org.example.DTO.Request.VariationOptionRequest;
+import org.example.DTO.Response.CustomerResponse;
+import org.example.DTO.Response.PageResponse;
 import org.example.DTO.Response.PurchaseResponse;
 import org.example.Entities.*;
 import org.example.Event.StockChangeEvent;
@@ -15,6 +15,9 @@ import org.example.Mapper.PurchasesMapper;
 import org.example.Repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +25,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -56,30 +58,35 @@ public class PurchaseService {
     private final VariationOptionsRepository variationOptionsRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    public Page<PurchaseResponse> getAllPurchases(Long staffId, Pageable pageable) {
+    @Cacheable(value = "purchases", key = "'page_'+#pageable.pageNumber+'_'+#pageable.pageSize+'_'+#pageable.sort.toString()")
+    public PageResponse<PurchaseResponse> getAllPurchases(Long staffId, Pageable pageable) {
         logger.info("Displaying all purchases");
+        Page<Purchases> page = purchaseRepository.findAll(pageable);
         if (staffId != null) {
-            return purchaseRepository.findPurchasesByStaff_UserId(staffId, pageable)
-                    .map(purchasesMapper::toResponse);
+            page =  purchaseRepository.findPurchasesByStaff_UserId(staffId, pageable);
         }
-        return purchaseRepository.findAll(pageable)
-                .map(purchasesMapper::toResponse);
+        Page<PurchaseResponse> mapped = page.map(purchasesMapper::toResponse);
+
+        return new PageResponse<>(mapped);
     }
 
-    public PurchaseResponse getPurchaseById(Long id) {
-        logger.info("Fetching purchase record with id: {}", id);
-        Purchases purchase = purchaseRepository.findById(id)
+
+    @Cacheable(value = "purchase", key = "#purchaseId")
+    public PurchaseResponse getPurchaseById(Long purchaseId) {
+        logger.info("Fetching purchase record with purchaseId: {}", purchaseId);
+        Purchases purchase = purchaseRepository.findById(purchaseId)
                 .orElseThrow(() -> {
-                    logger.error("Purchase record with id: {} does not exist", id);
+                    logger.error("Purchase record with purchaseId: {} does not exist", purchaseId);
                     return new ResourceNotFoundException("Purchase record not found.");
                 });
 
 
-        logger.info("Successfully fetched purchase record with id: {}", id);
+        logger.info("Successfully fetched purchase record with purchaseId: {}", purchaseId);
         return purchasesMapper.toResponse(purchase);
 
     }
 
+    @CachePut(value = "purchase", key = "#savedPurchase.purchaseId")
     @Transactional
     public PurchaseResponse addPurchase(PurchaseRequest request) {
 
@@ -240,6 +247,7 @@ public class PurchaseService {
         return purchasesMapper.toResponse(savedPurchase);
     }
 
+    @CachePut(value = "purchase", key = "#updatedPurchase.purchaseId")
     public PurchaseResponse updatePurchaseStatus(Long id, PurchaseStatusRequest request) {
 
         logger.info("Updating status id: {} with new name: {}", id, request.getPurchaseStatus());
@@ -260,12 +268,13 @@ public class PurchaseService {
 
 
 
-    public void deletePurchase(Long id) {
-        logger.info("Deleting purchase record with id: {}", id);
-        Purchases purchase = purchaseRepository.findById(id)
+    @CacheEvict(value = "purchase", key = "#purchaseId")
+    public void deletePurchase(Long purchaseId) {
+        logger.info("Deleting purchase record with id: {}", purchaseId);
+        Purchases purchase = purchaseRepository.findById(purchaseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Purchase not found"));
         purchaseRepository.delete(purchase);
 
-        logger.info("Successfully deleted purchase record with id: {}", id);
+        logger.info("Successfully deleted purchase record with id: {}", purchaseId);
     }
 }

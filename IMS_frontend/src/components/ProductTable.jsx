@@ -8,7 +8,7 @@ const ProductTable = ({ columns, headers, data,  onAddClick, onEditClick, onDele
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-      if (data.length > 0) {
+      if (data?.length > 0) {
         
         setLoading(false);
       }

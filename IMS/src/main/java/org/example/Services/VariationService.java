@@ -2,6 +2,8 @@ package org.example.Services;
 
 
 import org.example.DTO.Request.*;
+import org.example.DTO.Response.PageResponse;
+import org.example.DTO.Response.SkuResponse;
 import org.example.DTO.Response.VariationResponse;
 import org.example.Entities.*;
 import org.example.Exception.ResourceNotFoundException;
@@ -11,6 +13,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -37,11 +42,16 @@ public class VariationService {
         this.skuRepository = skuRepository;
     }
 
-    public Page<VariationResponse> getVariations(Pageable pageable) {
+    @Cacheable(value = "variations", key = "'page_'+#pageable.pageNumber+'_'+#pageable.pageSize+'_'+#pageable.sort.toString()")
+    public PageResponse<VariationResponse> getVariations(Pageable pageable) {
         logger.info("Displaying all customers");
-        return variationRepository.findAll(pageable)
-                .map(variationMapper::toResponse);
+        Page<Variation> page = variationRepository.findAll(pageable);
+
+        Page<VariationResponse> mapped = page.map(variationMapper::toResponse);
+
+        return new PageResponse<>(mapped);
     }
+
 
 
     public List<VariationResponse> getAllVariations() {
@@ -52,6 +62,7 @@ public class VariationService {
     }
 
 
+    @CachePut(value = "variation", key = "#finalVar.variationId")
     public VariationResponse createVariation(VariationRequest request) {
         logger.info("Attempting to create new variation with");
 
@@ -141,6 +152,7 @@ public class VariationService {
                 .toList();
     }
 
+    @CachePut(value = "variation", key = "#updatedVarName.variationId")
     public VariationResponse editVariationName(Long id, UpdateVariationNameRequest request) {
 
         logger.info("Updating status id: {} with new name: {}", id, request.getVariationName());
@@ -159,16 +171,17 @@ public class VariationService {
         return variationMapper.toResponse(updatedVarName);
     }
 
-    public void deleteVariation(Long id) {
+    @CacheEvict(value = "variation", key = "#variationId")
+    public void deleteVariation(Long variationId) {
 
         logger.info("Attempting to delete variation by ID");
-        Variation variation = variationRepository.findById(id)
+        Variation variation = variationRepository.findById(variationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Variation not found"));
 
 
         variationRepository.delete(variation);
 
-        logger.info("Successfully deleted variation: {} (id: {})", variation.getVariationName(), id);
+        logger.info("Successfully deleted variation: {} (variationId: {})", variation.getVariationName(), variationId);
     }
 
 

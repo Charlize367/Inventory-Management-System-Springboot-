@@ -330,7 +330,7 @@ console.log(products);
                        'Authorization': `Bearer ${token}`
                   }
               });
-
+              console.log
               setProducts(response.data.content);
               setCurrentPage(response.data.number);
               setTotalPages(response.data.totalPages);

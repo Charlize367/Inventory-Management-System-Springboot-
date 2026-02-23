@@ -2,23 +2,28 @@ package org.example.Services;
 
 
 import org.example.DTO.Request.CustomerRequest;
+import org.example.DTO.Response.BrandResponse;
 import org.example.DTO.Response.CustomerResponse;
-import org.example.Entities.Categories;
+import org.example.DTO.Response.PageResponse;
+import org.example.Entities.Brand;
 import org.example.Entities.Customers;
 import org.example.Exception.ResourceAlreadyExistsException;
 import org.example.Exception.ResourceNotFoundException;
 import org.example.Mapper.CustomerMapper;
 import org.example.Repository.CustomersRepository;
+import org.jetbrains.annotations.NotNull;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class CustomersService {
@@ -34,10 +39,20 @@ public class CustomersService {
 
     }
 
-    public Page<CustomerResponse> getCustomers(Pageable pageable) {
+    @Cacheable(value = "customers", key = "'page_'+#pageable.pageNumber+'_'+#pageable.pageSize+'_'+#pageable.sort.toString()")
+    public PageResponse<CustomerResponse> getCustomers(Pageable pageable) {
         logger.info("Displaying all customers");
-        return customersRepository.findAll(pageable)
-                .map(customerMapper::toResponse);
+        Page<Customers> page = customersRepository.findAll(pageable);
+
+        Page<CustomerResponse> mapped = page.map(customerMapper::toResponse);
+
+        return new PageResponse<>(mapped);
+    }
+
+    @NotNull
+    private Page<Customers> getCustomersPage(Pageable pageable) {
+        Page<Customers> page = customersRepository.findAll(pageable);
+        return page;
     }
 
 
@@ -48,17 +63,22 @@ public class CustomersService {
                 .toList();
     }
 
-    public CustomerResponse getCustomerById(Long id) {
-        logger.info("Fetching customer with id: {}", id);
-        Customers customer = customersRepository.findById(id)
+    @Cacheable(value = "customer", key = "#userId")
+    public CustomerResponse getCustomerById(Long userId) {
+        System.out.println("Fetching customer from DB: " + userId);
+        logger.info("Fetching customer with id: {}", userId);
+        Customers customer = customersRepository.findById(userId)
                 .orElseThrow(() -> {
-                    logger.error("Customer with id: {} does not exist", id);
+                    logger.error("Customer with id: {} does not exist", userId);
                     return new ResourceNotFoundException("Customer not found.");
                 });
         logger.info("Successfully fetched customer:{} (id: {})", customer.getCustomerName(), customer.getCustomerId() );
         return customerMapper.toResponse(customer);
     }
 
+
+
+    @CachePut(value = "customer", key = "#savedCustomer.userId")
     public CustomerResponse addCustomer(CustomerRequest request) {
 
         logger.info("Attempting to add new customer with email: {}", request.getCustomerEmail());
@@ -88,7 +108,7 @@ public class CustomersService {
         return customerMapper.toResponse(savedCustomer);
     }
 
-
+    @CachePut(value = "customer", key = "#updatedCustomer.userId")
     public CustomerResponse updateCustomerDetails(Long id, CustomerRequest request) {
 
         logger.info("Updating customer id: {} ", id);
@@ -117,14 +137,15 @@ public class CustomersService {
         return customerMapper.toResponse(updatedCustomer);
     }
 
-    public void deleteCustomer(Long id) {
+    @CacheEvict(value = "customer", key = "#userId")
+    public void deleteCustomer(Long userId) {
 
         logger.info("Attempting to delete customer by ID");
 
-        Customers customers = customersRepository.findById(id)
+        Customers customers = customersRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
         customersRepository.delete(customers);
 
-        logger.info("Successfully deleted customer: {} (id: {})", customers.getCustomerName(), id);
+        logger.info("Successfully deleted customer: {} (userId: {})", customers.getCustomerName(), userId);
     }
 }

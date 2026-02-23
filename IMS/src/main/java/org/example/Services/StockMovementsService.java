@@ -4,9 +4,12 @@ package org.example.Services;
 import org.example.DTO.Request.CustomerRequest;
 import org.example.DTO.Request.StockMovementRequest;
 import org.example.DTO.Response.CustomerResponse;
+import org.example.DTO.Response.PageResponse;
+import org.example.DTO.Response.SkuResponse;
 import org.example.DTO.Response.StockMovementResponse;
 import org.example.Entities.Customers;
 import org.example.Entities.Purchases;
+import org.example.Entities.Sku;
 import org.example.Entities.StockMovements;
 import org.example.Exception.ResourceNotFoundException;
 import org.example.Mapper.StockMovementsMapper;
@@ -15,6 +18,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -35,12 +41,17 @@ public class StockMovementsService {
         this.stockMovementsMapper = stockMovementsMapper;
     }
 
-    public Page<StockMovementResponse> getAllStockMovements(Pageable pageable) {
+    @Cacheable(value = "stockMovements", key = "'page_'+#pageable.pageNumber+'_'+#pageable.pageSize+'_'+#pageable.sort.toString()")
+    public PageResponse<StockMovementResponse> getAllStockMovements(Pageable pageable) {
         logger.info("Displaying all stock movement records");
-        return stockMovementsRepository.findAll(pageable)
-                .map(stockMovementsMapper::toResponse);
+        Page<StockMovements> page = stockMovementsRepository.findAll(pageable);
+
+        Page<StockMovementResponse> mapped = page.map(stockMovementsMapper::toResponse);
+
+        return new PageResponse<>(mapped);
     }
 
+    @Cacheable(value = "stockMovement", key = "#stockMovementId")
     public StockMovementResponse getStockMovementById(Long id) {
         logger.info("Fetching stock movement record with id: {}", id);
         StockMovements stockMovement = stockMovementsRepository.findById(id)
@@ -52,6 +63,7 @@ public class StockMovementsService {
         return stockMovementsMapper.toResponse(stockMovement);
     }
 
+    @CachePut(value = "stockMovement", key = "#updatedStockMovement.stockMovementId")
     public StockMovementResponse updateStockMovement(Long id, StockMovementRequest request) {
 
         logger.info("Updating stock movement id: {} ", id);
@@ -69,14 +81,15 @@ public class StockMovementsService {
         return stockMovementsMapper.toResponse(updatedStockMovement);
     }
 
-    public void deleteStockMovement(Long id) {
+    @CacheEvict(value = "stockMovement", key = "#stockMovementId")
+    public void deleteStockMovement(Long stockMovementId) {
 
         logger.info("Attempting to delete stock movement by ID");
 
-        StockMovements stockMovement = stockMovementsRepository.findById(id)
+        StockMovements stockMovement = stockMovementsRepository.findById(stockMovementId)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
         stockMovementsRepository.delete(stockMovement);
 
-        logger.info("Successfully deleted stock movement (id: {})", id);
+        logger.info("Successfully deleted stock movement (id: {})", stockMovementId);
     }
 }

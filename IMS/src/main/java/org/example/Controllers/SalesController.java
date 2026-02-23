@@ -5,6 +5,7 @@ import org.example.DTO.Request.PurchaseRequest;
 import org.example.DTO.Request.PurchaseStatusRequest;
 import org.example.DTO.Request.SalesPaymentStatusRequest;
 import org.example.DTO.Request.SalesRequest;
+import org.example.DTO.Response.PageResponse;
 import org.example.DTO.Response.PurchaseResponse;
 import org.example.DTO.Response.SalesResponse;
 import org.example.Entities.Sales;
@@ -38,11 +39,11 @@ public class SalesController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<SalesResponse>> getSales(@RequestParam(defaultValue = "0") int page,
-                                                        @RequestParam(defaultValue = "5") int size,
-                                                        @RequestParam(defaultValue = "salesId") String sortBy,
-                                                        @RequestParam(defaultValue = "true") boolean descending,
-                                                        @RequestParam(required = false) Long staffId) {
+    public ResponseEntity<PageResponse<SalesResponse>> getSales(@RequestParam(defaultValue = "0") int page,
+                                                                @RequestParam(defaultValue = "5") int size,
+                                                                @RequestParam(defaultValue = "salesId") String sortBy,
+                                                                @RequestParam(defaultValue = "true") boolean descending,
+                                                                @RequestParam(required = false) Long staffId) {
         Sort sort = descending ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 

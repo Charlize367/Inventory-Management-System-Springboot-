@@ -11,6 +11,7 @@ import org.example.Mapper.SalesMapper;
 import org.example.Repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -51,6 +52,7 @@ public class DashboardService {
     public long getTotalActiveProducts() {
         return productRepository.countByActiveTrue();
     }
+
 
     public DashboardResponse getDashboardInfo() {
 

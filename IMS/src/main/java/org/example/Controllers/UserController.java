@@ -2,6 +2,7 @@ package org.example.Controllers;
 
 import org.example.DTO.Request.SupplierRequest;
 import org.example.DTO.Request.UserRegisterRequest;
+import org.example.DTO.Response.PageResponse;
 import org.example.DTO.Response.SupplierResponse;
 import org.example.DTO.Response.UserResponse;
 import org.example.Services.UserService;
@@ -39,17 +40,17 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<UserResponse>> getUsers(@RequestParam(defaultValue = "0") int page,
-                                                       @RequestParam(defaultValue = "5") int size,
-                                                       @RequestParam(defaultValue = "userId") String sortBy,
-                                                       @RequestParam(defaultValue = "true") boolean descending,
-                                                       @RequestParam(required = false) String role) {
+    public ResponseEntity<PageResponse<UserResponse>> getUsers(@RequestParam(defaultValue = "0") int page,
+                                                               @RequestParam(defaultValue = "5") int size,
+                                                               @RequestParam(defaultValue = "userId") String sortBy,
+                                                               @RequestParam(defaultValue = "true") boolean descending,
+                                                               @RequestParam(required = false) String role) {
         Sort sort = descending ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
         if (role != null && !role.isEmpty()) {
             String finalRole = role.toUpperCase();
-            return ResponseEntity.ok(userService.getUsersByRole(finalRole, pageable));
+            return ResponseEntity.ok((PageResponse<UserResponse>) userService.getUsersByRole(finalRole, pageable));
         } else {
             return ResponseEntity.ok(userService.getUsers(pageable));
         }
