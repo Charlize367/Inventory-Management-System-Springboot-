@@ -43,7 +43,7 @@ services:
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       SPRING_CACHE_TYPE: redis
-      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_HOST: redis-ims
       SPRING_REDIS_PORT: 6379
       FRONTEND_URL: ${FRONTEND_URL}
     networks:
