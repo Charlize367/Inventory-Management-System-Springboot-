@@ -45,9 +45,11 @@ public class RedisCacheConfig {
 
     @Bean
     public RedisCacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
-        return RedisCacheManager.builder(redisConnectionFactory)
+        RedisCacheManager manager = RedisCacheManager.builder(redisConnectionFactory)
                 .cacheDefaults(cacheConfiguration())
                 .build();
+        System.out.println("✅ RedisCacheManager created: " + manager);
+        return manager;
     }
 
 
