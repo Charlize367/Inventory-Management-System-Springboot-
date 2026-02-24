@@ -7,6 +7,7 @@ import Table from '../../components/Table';
 import DeleteConfirm from '../../components/DeleteConfirm';
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react'
 import DeleteSuccessPopup from '../../components/DeleteSuccessPopup';
+import AddSuccessPopup from '../../components/AddSuccessPopup';
 
 const Sales = () => {
   const [showSidebar, setShowSidebar] = useState(false);
@@ -25,6 +26,9 @@ const Sales = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [pageSize] = useState(5);
   const role = localStorage.getItem('role');
+  const [showActionPopup, setActionPopup] = useState(false);
+  const [popupMessage, setPopupMessage] = useState("");
+  const [showPopup, setShowPopup] = useState(false);
   const [deleteSuccess, setDeleteSuccess] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [variations, setVariations] = useState([]);
@@ -36,6 +40,16 @@ const Sales = () => {
 
   const openModal2 = () => setShowModal2(true);
   const closeModal2 = () => setShowModal2(false);
+
+  const handlePopup = (message) => {
+        setPopupMessage(message);
+        setActionPopup(true);
+
+        setTimeout(() => {
+            setActionPopup(false);
+            setPopupMessage("");
+        }, 3000); 
+        };
 
   const headers = [
       { key: 'salesId', header: 'ID' },
@@ -403,7 +417,8 @@ console.log("options to be passed: ", option);
                 
           
               getSales();
-  
+
+              handlePopup("Sales added successfully.");
               closeAndClearForm();
   
           } else {
@@ -532,6 +547,24 @@ const removeSelectedItems = (index) => {
                 <div className="grid grid-cols-1 gap-4 m-0  bg-gray-200 p-4 flex-grow">
                   <Table headers={headers} columns={columns} onAddClick={openModal} data={sales} onDeleteClick={handleDelete} disableAdd="false" disableEdit="true" currentPage={currentPage} totalPages={totalPages} fetchData={getSales} />
         
+                {showPopup && (
+                <div className="overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 flex justify-center  items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full bg-black">
+                <div className="bg-white p-6 rounded shadow-lg w-80 text-center">
+                    <h3 className="text-lg font-bold mb-2">{error}</h3>
+                    <p>Please wait {retryTime} second{retryTime !== 1 ? "s" : ""} before trying again.</p>
+                    <button
+                    onClick={() => { setShowPopup(false); getSales(currentPage); }}
+                    disabled={retryTime > 0}
+                    className={`text-white inline-flex items-center cursor-pointer bg-gray-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mt-4 text-center ${
+                        retryTime > 0 ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                    >
+                    Retry Now
+                    </button>
+                </div>
+                </div>
+            )}
+
                 {showModal && (
                 <div id="crud-modal" tabIndex="-1" className=" overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 flex justify-center  items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
                     <div className="relative p-4 w-full max-w-6xl max-h-full">
@@ -724,7 +757,10 @@ const removeSelectedItems = (index) => {
                 {showModal2 && (<DeleteConfirm onClose={closeModal2} onDeleteClick={() => deleteSale(deleteId)} element="sale" />)}
         
 
-                
+        {showActionPopup && (
+            <AddSuccessPopup message={popupMessage} />
+        )}
+
         {deleteSuccess && (
             <DeleteSuccessPopup element="Sales record" setDeleteSuccess={setDeleteSuccess} />
         )}

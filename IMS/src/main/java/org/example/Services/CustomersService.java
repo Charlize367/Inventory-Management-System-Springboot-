@@ -153,7 +153,7 @@ public class CustomersService {
     }
 
     @Caching(evict = {
-            @CacheEvict(value = "customer", key = "#customerId"),
+            @CacheEvict(value = "customer", key = "#userId"),
             @CacheEvict(value = "customers", allEntries = true)
     })
     public void deleteCustomer(Long userId) {

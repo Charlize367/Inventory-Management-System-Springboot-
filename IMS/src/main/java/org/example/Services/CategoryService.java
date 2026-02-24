@@ -132,14 +132,14 @@ public class CategoryService {
             @CacheEvict(value = "category", key = "#categoryId"),
             @CacheEvict(value = "categories", allEntries = true)
     })
-    public void deleteCategory(Long id) {
+    public void deleteCategory(Long categoryId) {
 
-        logger.info("Attempting to delete category with id: {}", id);
-        Categories category = categoryRepository.findById(id)
+        logger.info("Attempting to delete category with id: {}", categoryId);
+        Categories category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
         categoryRepository.delete(category);
 
-        logger.info("Successfully deleted category: {} (id: {})", category.getCategoryName(), id);
+        logger.info("Successfully deleted category: {} (id: {})", category.getCategoryName(), categoryId);
     }
 
 

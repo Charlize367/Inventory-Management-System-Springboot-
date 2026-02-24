@@ -6,6 +6,7 @@ import Table from '../../components/Table';
 import DeleteConfirm from '../../components/DeleteConfirm';
 import axios from 'axios';
 import AddSuccessPopup from '../../components/AddSuccessPopup';
+import DeleteSuccessPopup from '../../components/DeleteSuccessPopup'
 
 const Suppliers = () => {
   const [showSidebar, setShowSidebar] = useState(false);

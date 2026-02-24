@@ -31,6 +31,9 @@ const Purchases = () => {
   const role = localStorage.getItem('role');
   const [deleteSuccess, setDeleteSuccess] = useState(false);
   const [variations, setVariations] = useState([]);
+  const [showActionPopup, setActionPopup] = useState(false);
+    const [popupMessage, setPopupMessage] = useState("");
+    const [showPopup, setShowPopup] = useState(false);
 
     
 
@@ -40,6 +43,15 @@ const Purchases = () => {
   const openModal2 = () => setShowModal2(true);
   const closeModal2 = () => setShowModal2(false);
 
+  const handlePopup = (message) => {
+        setPopupMessage(message);
+        setActionPopup(true);
+
+        setTimeout(() => {
+            setActionPopup(false);
+            setPopupMessage("");
+        }, 3000); 
+        };
   
 
 
@@ -331,7 +343,7 @@ console.log("options to be passed: ", option);
               
         
             getPurchases();
-
+            handlePopup("Purchase added successfully.");
             closeAndClearForm();
 
         } else {
@@ -457,6 +469,24 @@ console.log(selectedItems);
        
         <div className="grid grid-cols-1 gap-4 m-0  bg-gray-200 p-4 flex-grow">
           <Table headers={headers} columns={columns} onAddClick={openModal} data={purchases} onDeleteClick={handleDelete} disableAdd="false" disableEdit="true" currentPage={currentPage} totalPages={totalPages} fetchData={getPurchases} />
+
+        {showPopup && (
+                <div className="overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 flex justify-center  items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full bg-black">
+                <div className="bg-white p-6 rounded shadow-lg w-80 text-center">
+                    <h3 className="text-lg font-bold mb-2">{error}</h3>
+                    <p>Please wait {retryTime} second{retryTime !== 1 ? "s" : ""} before trying again.</p>
+                    <button
+                    onClick={() => { setShowPopup(false); getSales(currentPage); }}
+                    disabled={retryTime > 0}
+                    className={`text-white inline-flex items-center cursor-pointer bg-gray-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mt-4 text-center ${
+                        retryTime > 0 ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                    >
+                    Retry Now
+                    </button>
+                </div>
+                </div>
+            )}
 
         {showModal && (
         <div id="crud-modal" tabIndex="-1" className=" overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 flex justify-center  items-center w-full md:inset-0 h-[calc(100%-rem)] max-h-full">
@@ -647,6 +677,9 @@ console.log(selectedItems);
 
         {showModal2 && (<DeleteConfirm onClose={closeModal2} onDeleteClick={() => deletePurchase(deleteId)} element="purchase" />)}
 
+        {showActionPopup && (
+            <AddSuccessPopup message={popupMessage} />
+        )}
         
         {deleteSuccess && (
             <DeleteSuccessPopup element="Purchase record" setDeleteSuccess={setDeleteSuccess} />

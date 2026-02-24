@@ -134,13 +134,13 @@ public class BrandService {
             @CacheEvict(value = "brand", key = "#brandId"),
             @CacheEvict(value = "brands", allEntries = true)
     })
-    public void deleteBrand(Long id) {
+    public void deleteBrand(Long brandId) {
 
-        logger.info("Attempting to delete brand with id: {}", id);
-        Brand brand = brandRepository.findById(id)
+        logger.info("Attempting to delete brand with id: {}", brandId);
+        Brand brand = brandRepository.findById(brandId)
                 .orElseThrow(() -> new ResourceNotFoundException("Brand not found"));
         brandRepository.delete(brand);
 
-        logger.info("Successfully deleted brand: {} (id: {})", brand.getBrandName(), id);
+        logger.info("Successfully deleted brand: {} (id: {})", brand.getBrandName(), brandId);
     }
 }
