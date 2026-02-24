@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -68,7 +69,14 @@ public class CategoryService {
         return categoryMapper.toResponse(category);
     }
 
-    @CachePut(value = "category", key = "#result.categoryId")
+    @Caching(
+            put = {
+                    @CachePut(value = "category", key = "#result.categoryId")
+            },
+            evict = {
+                    @CacheEvict(value = "categories", allEntries = true)
+            }
+    )
     public CategoryResponse addCategory(CategoryRequest request) {
 
         logger.info("Attempting to add new category with name: {}", request.getCategoryName());
@@ -93,7 +101,14 @@ public class CategoryService {
     }
 
 
-    @CachePut(value = "category", key = "#result.categoryId")
+    @Caching(
+            put = {
+                    @CachePut(value = "category", key = "#result.categoryId")
+            },
+            evict = {
+                    @CacheEvict(value = "categories", allEntries = true)
+            }
+    )
     public CategoryResponse updateCategoryName(Long id, CategoryRequest request) {
 
         logger.info("Updating category id: {} with new name: {}", id, request.getCategoryName());
@@ -113,7 +128,10 @@ public class CategoryService {
         return categoryMapper.toResponse(updatedCategory);
     }
 
-    @CacheEvict(value = "category", key = "#categoryId")
+    @Caching(evict = {
+            @CacheEvict(value = "category", key = "#id"),
+            @CacheEvict(value = "categories", allEntries = true)
+    })
     public void deleteCategory(Long id) {
 
         logger.info("Attempting to delete category with id: {}", id);
