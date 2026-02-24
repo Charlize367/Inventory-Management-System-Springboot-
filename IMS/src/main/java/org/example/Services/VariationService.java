@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -62,7 +63,14 @@ public class VariationService {
     }
 
 
-    @CachePut(value = "variation", key = "#result.variationId")
+    @Caching(
+            put = {
+                    @CachePut(value = "variation", key = "#result.variationId")
+            },
+            evict = {
+                    @CacheEvict(value = "variations", allEntries = true)
+            }
+    )
     public VariationResponse createVariation(VariationRequest request) {
         logger.info("Attempting to create new variation with");
 
@@ -152,7 +160,14 @@ public class VariationService {
                 .toList();
     }
 
-    @CachePut(value = "variation", key = "#result.variationId")
+    @Caching(
+            put = {
+                    @CachePut(value = "variation", key = "#result.variationId")
+            },
+            evict = {
+                    @CacheEvict(value = "variations", allEntries = true)
+            }
+    )
     public VariationResponse editVariationName(Long id, UpdateVariationNameRequest request) {
 
         logger.info("Updating status id: {} with new name: {}", id, request.getVariationName());
@@ -171,7 +186,10 @@ public class VariationService {
         return variationMapper.toResponse(updatedVarName);
     }
 
-    @CacheEvict(value = "variation", key = "#variationId")
+    @Caching(evict = {
+            @CacheEvict(value = "variation", key = "#variationId"),
+            @CacheEvict(value = "variations", allEntries = true)
+    })
     public void deleteVariation(Long variationId) {
 
         logger.info("Attempting to delete variation by ID");

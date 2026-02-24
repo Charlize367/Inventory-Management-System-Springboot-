@@ -14,6 +14,9 @@ import org.example.Repository.VariationOptionsRepository;
 import org.example.Repository.VariationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PostMapping;
 
@@ -40,6 +43,14 @@ public class VariationOptionsService {
     }
 
     @PostMapping
+    @Caching(
+            put = {
+                    @CachePut(value = "variationOption", key = "#result.variationOptionId")
+            },
+            evict = {
+                    @CacheEvict(value = "variationOptions", allEntries = true)
+            }
+    )
     public VariationOptionsResponse addVariationOptionToVariation(VariationOptionRequest request, Long variationId) {
 
         logger.info("Attempting to add new category with name: {}", request.getVariationOptionName());
@@ -92,6 +103,15 @@ public class VariationOptionsService {
             return variationOptionsMapper.toResponse(savedVarOptions);
         }
 
+
+    @Caching(
+            put = {
+                    @CachePut(value = "variationOption", key = "#result.variationOptionId")
+            },
+            evict = {
+                    @CacheEvict(value = "variationOptions", allEntries = true)
+            }
+    )
     public VariationOptionsResponse editVariationOption(Long id, UpdateVarOptionRequest request) {
 
         logger.info("Updating status id: {} with new name: {}", id, request.getVariationOptionName());
@@ -138,6 +158,10 @@ public class VariationOptionsService {
         return variationOptionsMapper.toResponse(updatedVarOptionName);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "variationOption", key = "#variationOptionId"),
+            @CacheEvict(value = "variationOptions", allEntries = true)
+    })
     public void deleteVariationOption(Long variationOptionId) {
 
         logger.info("Attempting to delete variation option by ID");

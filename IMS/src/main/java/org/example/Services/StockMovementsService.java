@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -63,7 +64,14 @@ public class StockMovementsService {
         return stockMovementsMapper.toResponse(stockMovement);
     }
 
-    @CachePut(value = "stockMovement", key = "#updatedStockMovement.stockMovementId")
+    @Caching(
+            put = {
+                    @CachePut(value = "stockMovement", key = "#result.stockMovementId")
+            },
+            evict = {
+                    @CacheEvict(value = "stockMovements", allEntries = true)
+            }
+    )
     public StockMovementResponse updateStockMovement(Long id, StockMovementRequest request) {
 
         logger.info("Updating stock movement id: {} ", id);
@@ -81,7 +89,10 @@ public class StockMovementsService {
         return stockMovementsMapper.toResponse(updatedStockMovement);
     }
 
-    @CacheEvict(value = "stockMovement", key = "#stockMovementId")
+    @Caching(evict = {
+            @CacheEvict(value = "stockMovement", key = "#stockMovementId"),
+            @CacheEvict(value = "stockMovements", allEntries = true)
+    })
     public void deleteStockMovement(Long stockMovementId) {
 
         logger.info("Attempting to delete stock movement by ID");

@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -114,7 +115,14 @@ public class UserService implements UserDetailsService {
     }
 
 
-    @CachePut(value = "user", key = "#result.userId")
+    @Caching(
+            put = {
+                    @CachePut(value = "user", key = "#result.userId")
+            },
+            evict = {
+                    @CacheEvict(value = "users", allEntries = true)
+            }
+    )
     public UserResponse registerUser(UserRegisterRequest request) {
 
         logger.info("Attempting to add new user with email: {}", request.getEmail());
@@ -144,7 +152,14 @@ public class UserService implements UserDetailsService {
     }
 
 
-    @CachePut(value = "user", key = "#result.userId")
+    @Caching(
+            put = {
+                    @CachePut(value = "user", key = "#result.userId")
+            },
+            evict = {
+                    @CacheEvict(value = "users", allEntries = true)
+            }
+    )
     public UserResponse updateUserDetails(Long id, UserRegisterRequest request) {
         logger.info("Updating user id: {} ", id);
         Users user = usersRepository.findById(id)
@@ -163,7 +178,10 @@ public class UserService implements UserDetailsService {
         return usersMapper.toResponse(updatedUser);
     }
 
-    @CacheEvict(value = "user", key = "#userId")
+    @Caching(evict = {
+            @CacheEvict(value = "user", key = "#userId"),
+            @CacheEvict(value = "users", allEntries = true)
+    })
     public void deleteUser(Long userId) {
 
         logger.info("Attempting to delete user by ID");

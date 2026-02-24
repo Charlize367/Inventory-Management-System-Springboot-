@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -69,7 +70,14 @@ public class SuppliersService {
         return suppliersMapper.toResponse(supplier);
     }
 
-    @CachePut(value = "supplier", key = "#result.supplierId")
+    @Caching(
+            put = {
+                    @CachePut(value = "supplier", key = "#result.supplierId")
+            },
+            evict = {
+                    @CacheEvict(value = "suppliers", allEntries = true)
+            }
+    )
     public SupplierResponse addSupplier(SupplierRequest request) {
 
         logger.info("Attempting to add new supplier with email: {}", request.getSupplierEmail());
@@ -102,7 +110,14 @@ public class SuppliersService {
     }
 
 
-    @CachePut(value = "supplier", key = "#result.supplierId")
+    @Caching(
+            put = {
+                    @CachePut(value = "supplier", key = "#result.supplierId")
+            },
+            evict = {
+                    @CacheEvict(value = "suppliers", allEntries = true)
+            }
+    )
     public SupplierResponse updateSupplierDetails(Long id, SupplierRequest request) {
         logger.info("Updating supplier id: {} ", id);
 
@@ -129,7 +144,10 @@ public class SuppliersService {
         return suppliersMapper.toResponse(updatedSupplier);
     }
 
-    @CacheEvict(value = "supplier", key = "#supplierId")
+    @Caching(evict = {
+            @CacheEvict(value = "supplier", key = "#supplierId"),
+            @CacheEvict(value = "suppliers", allEntries = true)
+    })
     public void deleteSupplier(Long supplierId) {
         logger.info("Attempting to delete supplier by ID");
         Suppliers suppliers = suppliersRepository.findById(supplierId)

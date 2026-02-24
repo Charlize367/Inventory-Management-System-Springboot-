@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -71,7 +72,14 @@ public class BrandService {
         return brandMapper.toResponse(brand);
     }
 
-    @CachePut(value = "brand", key = "#result.brandId")
+    @Caching(
+            put = {
+                    @CachePut(value = "brand", key = "#result.brandId")
+            },
+            evict = {
+                    @CacheEvict(value = "brands", allEntries = true)
+            }
+    )
     public BrandResponse addBrand(BrandRequest request) {
 
         logger.info("Attempting to add new brand with name: {}", request.getBrandName());
@@ -95,7 +103,14 @@ public class BrandService {
     }
 
 
-    @CachePut(value = "brand", key = "#result.brandId")
+    @Caching(
+            put = {
+                    @CachePut(value = "brand", key = "#result.brandId")
+            },
+            evict = {
+                    @CacheEvict(value = "brands", allEntries = true)
+            }
+    )
     public BrandResponse updateBrandName(Long id, BrandRequest request) {
 
         logger.info("Updating brand id: {} with new name: {}", id, request.getBrandName());
@@ -115,7 +130,10 @@ public class BrandService {
         return brandMapper.toResponse(updatedBrand);
     }
 
-    @CacheEvict(value = "brand", key = "#brandId")
+    @Caching(evict = {
+            @CacheEvict(value = "brand", key = "#brandId"),
+            @CacheEvict(value = "brands", allEntries = true)
+    })
     public void deleteBrand(Long id) {
 
         logger.info("Attempting to delete brand with id: {}", id);

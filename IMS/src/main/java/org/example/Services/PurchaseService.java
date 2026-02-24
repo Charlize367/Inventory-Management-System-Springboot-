@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -86,7 +87,14 @@ public class PurchaseService {
 
     }
 
-    @CachePut(value = "purchase", key = "#result.purchaseId")
+    @Caching(
+            put = {
+                    @CachePut(value = "purchase", key = "#result.purchaseId")
+            },
+            evict = {
+                    @CacheEvict(value = "purchases", allEntries = true)
+            }
+    )
     @Transactional
     public PurchaseResponse addPurchase(PurchaseRequest request) {
 
@@ -247,7 +255,14 @@ public class PurchaseService {
         return purchasesMapper.toResponse(savedPurchase);
     }
 
-    @CachePut(value = "purchase", key = "#updatedPurchase.purchaseId")
+    @Caching(
+            put = {
+                    @CachePut(value = "purchase", key = "#result.purchaseId")
+            },
+            evict = {
+                    @CacheEvict(value = "purchases", allEntries = true)
+            }
+    )
     public PurchaseResponse updatePurchaseStatus(Long id, PurchaseStatusRequest request) {
 
         logger.info("Updating status id: {} with new name: {}", id, request.getPurchaseStatus());
@@ -268,7 +283,10 @@ public class PurchaseService {
 
 
 
-    @CacheEvict(value = "purchase", key = "#purchaseId")
+    @Caching(evict = {
+            @CacheEvict(value = "purchase", key = "#purchaseId"),
+            @CacheEvict(value = "purchases", allEntries = true)
+    })
     public void deletePurchase(Long purchaseId) {
         logger.info("Deleting purchase record with id: {}", purchaseId);
         Purchases purchase = purchaseRepository.findById(purchaseId)

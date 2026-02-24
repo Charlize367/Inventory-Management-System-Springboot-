@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -73,7 +74,7 @@ public class SalesService {
     }
 
 
-    @Cacheable(value = "sales", key = "#saleId")
+    @Cacheable(value = "sales", key = "#salesId")
     public SalesResponse getSalesById(Long saleId) {
         logger.info("Fetching sales record with saleId: {}", saleId);
         Sales sale = salesRepository.findById(saleId)
@@ -85,7 +86,14 @@ public class SalesService {
         return salesMapper.toResponse(sale);
     }
 
-    @CachePut(value = "sale", key = "#result.salesId")
+    @Caching(
+            put = {
+                    @CachePut(value = "sale", key = "#result.salesId")
+            },
+            evict = {
+                    @CacheEvict(value = "sales", allEntries = true)
+            }
+    )
     @Transactional
     public SalesResponse addSale(SalesRequest request) {
 
@@ -245,7 +253,14 @@ public class SalesService {
     }
 
 
-    @CachePut(value = "sale", key = "#savedSales.saleId")
+    @Caching(
+            put = {
+                    @CachePut(value = "sale", key = "#result.salesId")
+            },
+            evict = {
+                    @CacheEvict(value = "sales", allEntries = true)
+            }
+    )
     public SalesResponse updateSalesPaymentStatus(Long id, SalesPaymentStatusRequest request) {
 
         logger.info("Updating status id: {} with new name: {}", id, request.getSalesPaymentStatus());
@@ -264,7 +279,10 @@ public class SalesService {
         return salesMapper.toResponse(updatedSale);
     }
 
-    @CacheEvict(value = "sale", key = "#salesId")
+    @Caching(evict = {
+            @CacheEvict(value = "sale", key = "#salesId"),
+            @CacheEvict(value = "sales", allEntries = true)
+    })
     public void deleteSale(Long salesId) {
         logger.info("Deleting purchase record with id: {}", salesId);
         Sales sale = salesRepository.findById(salesId)

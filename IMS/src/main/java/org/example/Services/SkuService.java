@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -64,7 +65,14 @@ public class SkuService {
 
     }
 
-    @CachePut(value = "sku", key = "#result.skuId")
+    @Caching(
+            put = {
+                    @CachePut(value = "sku", key = "#result.skuId")
+            },
+            evict = {
+                    @CacheEvict(value = "skus", allEntries = true)
+            }
+    )
     public SkuResponse updateSKUStatus(Long id, SkuRequest request) {
 
         logger.info("Updating status id: {} with new name: {}", id, request.getActive());
@@ -83,7 +91,10 @@ public class SkuService {
         return skuMapper.toResponse(updatedSku);
     }
 
-    @CacheEvict(value = "sku", key = "#skuId")
+    @Caching(evict = {
+            @CacheEvict(value = "sku", key = "#skuId"),
+            @CacheEvict(value = "skus", allEntries = true)
+    })
     public void deleteSKU(Long skuId) {
         logger.info("Deleting SKU with skuId: {}", skuId);
         Sku sku = skuRepository.findById(skuId)

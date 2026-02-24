@@ -129,7 +129,7 @@ public class CategoryService {
     }
 
     @Caching(evict = {
-            @CacheEvict(value = "category", key = "#id"),
+            @CacheEvict(value = "category", key = "#categoryId"),
             @CacheEvict(value = "categories", allEntries = true)
     })
     public void deleteCategory(Long id) {

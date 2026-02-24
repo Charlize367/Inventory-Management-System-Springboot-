@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -78,7 +79,14 @@ public class CustomersService {
 
 
 
-    @CachePut(value = "customer", key = "#savedCustomer.userId")
+    @Caching(
+            put = {
+                    @CachePut(value = "customer", key = "#result.userId")
+            },
+            evict = {
+                    @CacheEvict(value = "customers", allEntries = true)
+            }
+    )
     public CustomerResponse addCustomer(CustomerRequest request) {
 
         logger.info("Attempting to add new customer with email: {}", request.getCustomerEmail());
@@ -108,7 +116,14 @@ public class CustomersService {
         return customerMapper.toResponse(savedCustomer);
     }
 
-    @CachePut(value = "customer", key = "#updatedCustomer.userId")
+    @Caching(
+            put = {
+                    @CachePut(value = "customer", key = "#result.userId")
+            },
+            evict = {
+                    @CacheEvict(value = "customers", allEntries = true)
+            }
+    )
     public CustomerResponse updateCustomerDetails(Long id, CustomerRequest request) {
 
         logger.info("Updating customer id: {} ", id);
@@ -137,7 +152,10 @@ public class CustomersService {
         return customerMapper.toResponse(updatedCustomer);
     }
 
-    @CacheEvict(value = "customer", key = "#userId")
+    @Caching(evict = {
+            @CacheEvict(value = "customer", key = "#customerId"),
+            @CacheEvict(value = "customers", allEntries = true)
+    })
     public void deleteCustomer(Long userId) {
 
         logger.info("Attempting to delete customer by ID");

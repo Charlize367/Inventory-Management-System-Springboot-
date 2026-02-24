@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -132,7 +133,14 @@ public class ProductService {
     }
 
 
-    @CachePut(value = "product", key = "#savedProduct.productId")
+    @Caching(
+            put = {
+                    @CachePut(value = "product", key = "#result.productId")
+            },
+            evict = {
+                    @CacheEvict(value = "products", allEntries = true)
+            }
+    )
     @Transactional
     public ProductResponse addProduct(ProductRequest request) {
 
@@ -239,7 +247,14 @@ public class ProductService {
 
     }
 
-    @CachePut(value = "product", key = "#updatedProduct.productId")
+    @Caching(
+            put = {
+                    @CachePut(value = "product", key = "#result.productId")
+            },
+            evict = {
+                    @CacheEvict(value = "products", allEntries = true)
+            }
+    )
     public ProductResponse updateProductDetails(Long id, ProductRequest request) {
 
         logger.info("Updating product id: {} ", id);
@@ -361,7 +376,10 @@ public class ProductService {
     }
 
 
-    @CacheEvict(value = "product", key = "#productId")
+    @Caching(evict = {
+            @CacheEvict(value = "product", key = "#productId"),
+            @CacheEvict(value = "products", allEntries = true)
+    })
     public void deleteProduct(Long productId) {
 
         logger.info("Attempting to delete product by ID");
