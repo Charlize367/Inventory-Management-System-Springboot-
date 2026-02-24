@@ -68,7 +68,7 @@ public class CategoryService {
         return categoryMapper.toResponse(category);
     }
 
-    @CachePut(value = "category", key = "#savedCategory.categoryId")
+    @CachePut(value = "category", key = "#result.categoryId")
     public CategoryResponse addCategory(CategoryRequest request) {
 
         logger.info("Attempting to add new category with name: {}", request.getCategoryName());
@@ -93,7 +93,7 @@ public class CategoryService {
     }
 
 
-    @CachePut(value = "category", key = "#savedCategory.categoryId")
+    @CachePut(value = "category", key = "#result.categoryId")
     public CategoryResponse updateCategoryName(Long id, CategoryRequest request) {
 
         logger.info("Updating category id: {} with new name: {}", id, request.getCategoryName());

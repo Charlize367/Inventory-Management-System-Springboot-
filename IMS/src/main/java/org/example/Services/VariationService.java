@@ -62,7 +62,7 @@ public class VariationService {
     }
 
 
-    @CachePut(value = "variation", key = "#finalVar.variationId")
+    @CachePut(value = "variation", key = "#result.variationId")
     public VariationResponse createVariation(VariationRequest request) {
         logger.info("Attempting to create new variation with");
 
@@ -152,7 +152,7 @@ public class VariationService {
                 .toList();
     }
 
-    @CachePut(value = "variation", key = "#updatedVarName.variationId")
+    @CachePut(value = "variation", key = "#result.variationId")
     public VariationResponse editVariationName(Long id, UpdateVariationNameRequest request) {
 
         logger.info("Updating status id: {} with new name: {}", id, request.getVariationName());

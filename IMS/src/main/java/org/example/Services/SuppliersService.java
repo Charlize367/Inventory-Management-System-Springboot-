@@ -69,7 +69,7 @@ public class SuppliersService {
         return suppliersMapper.toResponse(supplier);
     }
 
-    @CachePut(value = "supplier", key = "#savedSupplier.supplierId")
+    @CachePut(value = "supplier", key = "#result.supplierId")
     public SupplierResponse addSupplier(SupplierRequest request) {
 
         logger.info("Attempting to add new supplier with email: {}", request.getSupplierEmail());
@@ -102,7 +102,7 @@ public class SuppliersService {
     }
 
 
-    @CachePut(value = "supplier", key = "#updatedSupplier.supplierId")
+    @CachePut(value = "supplier", key = "#result.supplierId")
     public SupplierResponse updateSupplierDetails(Long id, SupplierRequest request) {
         logger.info("Updating supplier id: {} ", id);
 

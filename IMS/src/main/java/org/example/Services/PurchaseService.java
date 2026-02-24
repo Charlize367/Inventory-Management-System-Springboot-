@@ -86,7 +86,7 @@ public class PurchaseService {
 
     }
 
-    @CachePut(value = "purchase", key = "#savedPurchase.purchaseId")
+    @CachePut(value = "purchase", key = "#result.purchaseId")
     @Transactional
     public PurchaseResponse addPurchase(PurchaseRequest request) {
 

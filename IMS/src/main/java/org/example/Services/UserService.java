@@ -114,7 +114,7 @@ public class UserService implements UserDetailsService {
     }
 
 
-    @CachePut(value = "user", key = "#savedUser.userId")
+    @CachePut(value = "user", key = "#result.userId")
     public UserResponse registerUser(UserRegisterRequest request) {
 
         logger.info("Attempting to add new user with email: {}", request.getEmail());
@@ -144,7 +144,7 @@ public class UserService implements UserDetailsService {
     }
 
 
-    @CachePut(value = "user", key = "#updatedUser.userId")
+    @CachePut(value = "user", key = "#result.userId")
     public UserResponse updateUserDetails(Long id, UserRegisterRequest request) {
         logger.info("Updating user id: {} ", id);
         Users user = usersRepository.findById(id)

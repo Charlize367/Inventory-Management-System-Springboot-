@@ -71,7 +71,7 @@ public class BrandService {
         return brandMapper.toResponse(brand);
     }
 
-    @CachePut(value = "brand", key = "#savedBrand.brandId")
+    @CachePut(value = "brand", key = "#result.brandId")
     public BrandResponse addBrand(BrandRequest request) {
 
         logger.info("Attempting to add new brand with name: {}", request.getBrandName());
@@ -95,7 +95,7 @@ public class BrandService {
     }
 
 
-    @CachePut(value = "brand", key = "#savedBrand.brandId")
+    @CachePut(value = "brand", key = "#result.brandId")
     public BrandResponse updateBrandName(Long id, BrandRequest request) {
 
         logger.info("Updating brand id: {} with new name: {}", id, request.getBrandName());

@@ -64,7 +64,7 @@ public class SkuService {
 
     }
 
-    @CachePut(value = "sku", key = "#updatedSku.skuId")
+    @CachePut(value = "sku", key = "#result.skuId")
     public SkuResponse updateSKUStatus(Long id, SkuRequest request) {
 
         logger.info("Updating status id: {} with new name: {}", id, request.getActive());

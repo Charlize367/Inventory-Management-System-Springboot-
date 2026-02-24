@@ -85,7 +85,7 @@ public class SalesService {
         return salesMapper.toResponse(sale);
     }
 
-    @CachePut(value = "sale", key = "#savedSales.salesId")
+    @CachePut(value = "sale", key = "#result.salesId")
     @Transactional
     public SalesResponse addSale(SalesRequest request) {
 
