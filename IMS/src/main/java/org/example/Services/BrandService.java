@@ -19,6 +19,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -139,7 +140,13 @@ public class BrandService {
         logger.info("Attempting to delete brand with id: {}", brandId);
         Brand brand = brandRepository.findById(brandId)
                 .orElseThrow(() -> new ResourceNotFoundException("Brand not found"));
-        brandRepository.delete(brand);
+        try {
+            brandRepository.delete(brand);
+        } catch (DataIntegrityViolationException ex) {
+            throw new IllegalStateException(
+                    "Cannot delete brand because it is still assigned to products."
+            );
+        }
 
         logger.info("Successfully deleted brand: {} (id: {})", brand.getBrandName(), brandId);
     }

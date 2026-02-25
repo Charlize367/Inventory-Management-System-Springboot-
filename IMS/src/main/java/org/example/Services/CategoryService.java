@@ -16,6 +16,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -137,7 +138,14 @@ public class CategoryService {
         logger.info("Attempting to delete category with id: {}", categoryId);
         Categories category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
-        categoryRepository.delete(category);
+        try {
+            categoryRepository.delete(category);
+        } catch (DataIntegrityViolationException ex) {
+            throw new IllegalStateException(
+                    "Cannot delete category because it is still assigned to products."
+            );
+        }
+
 
         logger.info("Successfully deleted category: {} (id: {})", category.getCategoryName(), categoryId);
     }
